@@ -137,7 +137,7 @@ class FeatureExtraction:
                 return 1
         return -1
     
-    # 6 short url : tested
+    # 6 short url 
     def short_url(self):
         pattern = 'bit\.ly|goo\.gl|shorte\.st|go2l\.ink|x\.co|ow\.ly|t\.co|tinyurl|tr\.im|is\.gd|cli\.gs|' \
             'yfrog\.com|migre\.me|ff\.im|tiny\.cc|url4\.eu|twit\.ac|su\.pr|twurl\.nl|snipurl\.com|' \
@@ -153,7 +153,7 @@ class FeatureExtraction:
         else:
             return 0
 
-    # 7 Use the IP Address : tested
+    # 7 Use the IP Address 
     def having_ip_address(self):
         match = re.search(
             '(([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.'
