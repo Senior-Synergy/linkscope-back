@@ -25,9 +25,9 @@ class FeatureExtraction:
         print("get soup successfully")
 
         try:
-            self.domain_name = whois.whois(urlparse(url).netloc)
+            self.domain = whois.whois(urlparse(self.url).netloc)
         except Exception:
-            self.domain_name = None
+            self.domain = None
         print("get whois successfully")
 
         # self.features.append(urlt)
@@ -65,19 +65,17 @@ class FeatureExtraction:
         self.features.append(self.redirection())  # 27
 
         # Domain based features
-        self.features.append(
-            self.domainAge() if self.domain_name else -1)  # 28
-        self.features.append(
-            self.domainEnd() if self.domain_name else -1)  # 29
+        self.features.append(self.domainAge() if self.domain else -1)  # 28
+        self.features.append(self.domainEnd() if self.domain else -1)  # 29
 
     # 0.UsingIp
-    def getfinalurl(self):
-        parsed_url = urlparse(self.url)
-        final_url = self.url
+    def getfinalurl(self, urlt):
+        parsed_url = urlparse(urlt)
+        final_url = urlt
         soup = None
         urlhistory = None
         if not parsed_url.scheme:
-            final_url = "http://" + self.url
+            final_url = "http://" + urlt
         try:
             response = requests.get(final_url, allow_redirects=True, headers={
                                     'User-Agent': headers}, timeout=2)  # ,allow_redirects=True
