@@ -1,18 +1,3 @@
-
-from urllib.parse import urlparse
-from tld import get_tld, is_tld
-import tldextract
-import whois
-import datetime
-from datetime import datetime
-import time
-from bs4 import BeautifulSoup
-import re
-
-import requests
-headers = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-
-
 from urllib.parse import urlparse
 from tld import get_tld, is_tld
 import tldextract
