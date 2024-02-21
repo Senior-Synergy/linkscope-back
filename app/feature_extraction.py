@@ -21,13 +21,13 @@ class FeatureExtraction:
         self.url = urldata[0]
         self.soup = urldata[1]
         self.urlhistory = urldata[2]
-        print("get soup successfully")
+        #print("get soup successfully")
 
         try:
-            self.domain = whois.whois(urlparse(self.url).netloc)
+            self.w = whois.whois(urlparse(self.url).netloc)
         except Exception:
-            self.domain = None
-        print("get whois successfully")
+            self.w = None
+        #print("get whois successfully")
 
         # self.features.append(urlt)
         # Address bar based features (10)
@@ -64,8 +64,8 @@ class FeatureExtraction:
         self.features.append(self.redirection())  # 27
 
         # Domain based features
-        self.features.append(self.domainAge() if self.domain else -1)  # 28
-        self.features.append(self.domainEnd() if self.domain else -1)  # 29
+        self.features.append(self.domainAge() if self.w else -1)  # 28
+        self.features.append(self.domainEnd() if self.w else -1)  # 29
 
     # 0.UsingIp
     def getfinalurl(self, urlt):
@@ -369,15 +369,15 @@ class FeatureExtraction:
 
     # 28 Domain Age : Survival time of domain: The difference between termination time and creation time (Domain_Age)
     def domainAge(self):
-        creation_date = self.domain.creation_date
-        expiration_date = self.domain.expiration_date
+        creation_date = self.w.creation_date
+        expiration_date = self.w.expiration_date
         ageofdomain = 0
         if (expiration_date is None) or (creation_date is None):
             return 1
         elif type(expiration_date) is list:
-            expiration_date = self.domain.expiration_date[0]
+            expiration_date = self.w.expiration_date[0]
         elif type(creation_date) is list:
-            creation_date = self.domain.creation_date[0]
+            creation_date = self.w.creation_date[0]
         elif type(creation_date) is str or type(expiration_date) is str:
             return -1
         else:
@@ -386,14 +386,14 @@ class FeatureExtraction:
 
     # 29 Domain Registration length
     def domainEnd(self):
-        expiration_date = self.domain.expiration_date
+        expiration_date = self.w.expiration_date
         today = time.strftime('%Y-%m-%d')
         today = datetime.strptime(today, '%Y-%m-%d')
         registration_length = 0
         if expiration_date is None:
             return 1
         elif type(expiration_date) is list:
-            expiration_date = self.domain.expiration_date[0]
+            expiration_date = self.w.expiration_date[0]
         elif type(expiration_date) is str:
             return -1
         else:
