@@ -1,4 +1,3 @@
-
 from urllib.parse import urlparse
 from tld import get_tld, is_tld
 import tldextract
