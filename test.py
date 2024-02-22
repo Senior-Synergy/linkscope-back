@@ -4,7 +4,7 @@ import pandas as pd
 from functions import *
 import warnings
 import pickle
-import whois
+import gzip
 from urllib.parse import urlparse
 import bz2file as bz2
 warnings.filterwarnings('ignore')
@@ -13,11 +13,17 @@ from app.feature_extraction import FeatureExtraction
 #with open("data/model.pkl","rb") as f:
 #    model = pickle.load(f)
 
-def decompress_pickle(file):
-    data = bz2.BZ2File(file, "rb")
-    data = pickle.load(data)
-    return data
-model = decompress_pickle("data/model_allfeatures.bz2")
+# def decompress_pickle(file):
+#    data = bz2.BZ2File(file, "rb")
+#    data = pickle.load(data)
+ #   return data
+#model = decompress_pickle("data/model_allfeatures.bz2")
+
+def load_zipped_pickle(filename):
+    with gzip.open(filename, 'rb') as f:
+        loaded_object = pickle.load(f)
+        return loaded_object
+model = load_zipped_pickle("data/model_new.gzip")
 
 #file.close()
 url = 'fakespot.com'
