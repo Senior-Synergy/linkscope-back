@@ -6,18 +6,8 @@ import warnings
 import pickle
 import gzip
 from urllib.parse import urlparse
-import bz2file as bz2
 warnings.filterwarnings('ignore')
 from app.feature_extraction import FeatureExtraction
-
-#with open("data/model.pkl","rb") as f:
-#    model = pickle.load(f)
-
-# def decompress_pickle(file):
-#    data = bz2.BZ2File(file, "rb")
-#    data = pickle.load(data)
- #   return data
-#model = decompress_pickle("data/model_allfeatures.bz2")
 
 def load_zipped_pickle(filename):
     with gzip.open(filename, 'rb') as f:
