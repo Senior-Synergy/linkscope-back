@@ -4,7 +4,7 @@ from app.models import ScanResult, ScanStatus
 router = APIRouter()
 
 
-@router.get("/scan/")
+@router.get("/process")
 async def get_result(url: str):
     # This is where the processing logic should be...
     # Idea: return scan_id != 0 if the scan is successful.
