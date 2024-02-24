@@ -1,11 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from mangum import Mangum
 
-# from app.api.api_v1.api import router as api_router
+from app.api.api_v1.api import router as api_router
 
 app = FastAPI()
-handler = Mangum(app)
 
 origins = ["*"]
 
@@ -23,7 +21,7 @@ def read_root():
     return {"message": "Hello, From Backend!"}
 
 
-# app.include_router(api_router, prefix="/api/v1")
+app.include_router(api_router, prefix="/api/v1")
 
 # Use this to update requirements:
 # pip freeze > requirements.txt
