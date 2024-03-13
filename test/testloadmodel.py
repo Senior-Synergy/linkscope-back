@@ -24,20 +24,10 @@ feature_names = [
             'sfh', 'redirection', 'domainage', 'domainend'
         ]
 
-def replace_minus_one(X):
-    return X.replace(-1, np.nan)
-
-def cast_to_float(X):
-    return X.astype(float)
-
-def cast_to_int(X):
-    return X.astype(int)
-
 def load_model(filename):
     with gzip.open(filename, 'rb') as f:
         model = pickle.load(f)
     return model
-
 
 class URLresult:
     def __init__(self, url, model):

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import numpy as np
 
 #from sqlalchemy.orm import Session
 from . import  models
@@ -56,6 +57,7 @@ def read_root():
 
 
 app.include_router(api_router, prefix="/api/v1")
+
 
 # Use this to update requirements:
 # pip freeze > requirements.txt
