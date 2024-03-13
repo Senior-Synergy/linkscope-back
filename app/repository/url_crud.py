@@ -13,14 +13,14 @@ def create_ScanResult(request: schemas.ScanResultCreate, db: Session):
     model = load_model("data/model_compressed.gzip") # create model 
     obj = URLresult(request.url, model)
     final_url = obj.get_final_url()
-    print(f'final url is {final_url}')
-    print(f'phish prob is {obj.get_phish_prob()}')
+    #print(f'final url is {final_url}')
+    #print(f'phish prob is {obj.get_phish_prob()}')
     
-    url_result = db.query(models.ScanResult).filter(models.ScanResult.final_url == final_url)
-    #print(url_result)
-    if not url_result:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                           detail=f"URL with the url {request.url} is already created")
+    url_result = db.query(models.ScanResult).filter(models.ScanResult.final_url == final_url).first()
+    #print(f'url_result is {url_result}')
+    if url_result:
+       raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                          detail=f"URL with the url {request.url} is already created")
     new_url = models.ScanResult(url = request.url,
                             final_url = final_url, 
                             phish_prob = obj.get_phish_prob(),
