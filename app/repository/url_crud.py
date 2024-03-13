@@ -10,13 +10,17 @@ def get_all(db: Session):
 '''
 
 def create_ScanResult(request: schemas.ScanResultCreate, db: Session):
-    model = load_model("data/model_final1.gzip") # create model 
+    model = load_model("data/model_compressed.gzip") # create model 
     obj = URLresult(request.url, model)
     final_url = obj.get_final_url()
+    print(f'final url is {final_url}')
+    print(f'phish prob is {obj.get_phish_prob()}')
+    
     url_result = db.query(models.ScanResult).filter(models.ScanResult.final_url == final_url)
-    if url_result:
-         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"URL with the url {request.url} is already created")
+    #print(url_result)
+    if not url_result:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                           detail=f"URL with the url {request.url} is already created")
     new_url = models.ScanResult(url = request.url,
                             final_url = final_url, 
                             phish_prob = obj.get_phish_prob(),
@@ -26,6 +30,9 @@ def create_ScanResult(request: schemas.ScanResultCreate, db: Session):
     db.commit()
     db.refresh(new_url)
     return new_url
+    #else: 
+    #    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+    #                        detail=f"URL with the url {request.url} is already created")
    
 def get_ScanResult(scan_id : int, db: Session):
     url_result = db.query(models.ScanResult).filter(models.ScanResult.scan_id == scan_id ).first()
