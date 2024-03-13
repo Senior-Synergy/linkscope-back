@@ -10,7 +10,7 @@ def get_all(db: Session):
 '''
 
 def create_ScanResult(request: schemas.ScanResultCreate, db: Session):
-    model = load_model("data/model_new.gzip")
+    model = load_model("data/model_final1.gzip") # create model 
     obj = URLresult(request.url, model)
     final_url = obj.get_final_url()
     url_result = db.query(models.ScanResult).filter(models.ScanResult.final_url == final_url)

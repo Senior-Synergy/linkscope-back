@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.middleware.cors import CORSMiddleware
+import numpy as np
 
 #from sqlalchemy.orm import Session
 from . import  models
@@ -23,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(url.router)
+
 
 # Use this to update requirements:
 # pip freeze > requirements.txt
