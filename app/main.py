@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.middleware.cors import CORSMiddleware
 
 #from sqlalchemy.orm import Session
@@ -9,6 +8,7 @@ from app.router import url
 
 
 models.Base.metadata.create_all(bind=engine)
+from app.api.api_v1.api import router as api_router
 
 app = FastAPI()
 
@@ -22,7 +22,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(url.router)
+
+@app.get("/")
+def read_root():
+    return {"message": "Hello, From Backend!"}
+
+
+app.include_router(api_router, prefix="/api/v1")
 
 # Use this to update requirements:
 # pip freeze > requirements.txt
