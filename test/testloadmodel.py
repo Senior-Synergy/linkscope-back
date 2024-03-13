@@ -6,7 +6,7 @@ import gzip
 from urllib.parse import urlparse
 warnings.filterwarnings('ignore')
 
-from app.urlfeatures import FeatureExtraction
+from urlfeatures import FeatureExtraction
 
 num_features = [
             'domainlength', '@', '-', '=', '.', '_', '/', 'digit',
