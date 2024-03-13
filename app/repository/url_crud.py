@@ -30,10 +30,8 @@ def create_ScanResult(request: schemas.ScanResultCreate, db: Session):
     db.commit()
     db.refresh(new_url)
     return new_url
-    #else: 
-    #    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-    #                        detail=f"URL with the url {request.url} is already created")
-   
+
+
 def get_ScanResult(scan_id : int, db: Session):
     url_result = db.query(models.ScanResult).filter(models.ScanResult.scan_id == scan_id ).first()
     if not url_result:
