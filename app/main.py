@@ -1,11 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import numpy as np
-
-#from sqlalchemy.orm import Session
-from . import  models
+from . import models
 from .database import engine
-from app.router import url
+
+from .api.api_v1.api import router as router_v1
+from .api.api_v2.api import router as router_v2
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -26,12 +25,6 @@ app.add_middleware(
 def read_root():
     return {"message": "Hello, From Backend!"}
 
-
-app.include_router(url.router)
-
-
-# Use this to update requirements:
-# pip freeze > requirements.txt
-
-# Use this to start:
-# uvicorn app.main:app --reload
+# API Endpoints
+app.include_router(router_v1, prefix="/api/v1")
+app.include_router(router_v2, prefix="/api/v2")
