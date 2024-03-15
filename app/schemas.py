@@ -22,3 +22,4 @@ class ScanResult(Url):
 
     class Config():
         from_attributes = True
+
