@@ -1,5 +1,16 @@
 # linkscope-back
-1. Activate python environment : `venv\Scripts\activate`
-2. To start server : `uvicorn app.main:app --reload`
-3. Write requirement file and update :  `pip freeze > requirements.txt`
+
+## Initialization (first time)
+1. Ensure that the current python version is >=3.7 and <=3.11
+2. Create new python environment: `python -m venv .venv`
+3. Activate the environment : `.venv\Scripts\activate`
 4. Install all packages in requirement : `pip install -r requirements.txt`
+4. To start the server : `uvicorn app.main:app --reload`
+
+## Running the Sever Locally
+1. Activate python environment : `.venv\Scripts\activate`
+2. Check for requirement updates : `pip install -r requirements.txt`
+3. Start the server : `uvicorn app.main:app --reload`
+
+## Updating Requirements
+Write requirement file and update :  `pip freeze > requirements.txt`
