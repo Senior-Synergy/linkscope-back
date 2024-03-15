@@ -6,11 +6,10 @@ from app.urlresult import *
 
 def create_ScanResult(url: str, result: URLresult, session: Session):
     try:
-        scan_result = models.ScanResult(url,
-                                        final_url=result.final_url,
+        scan_result = models.ScanResult(url=url,
+                                        final_url=result.get_final_url(),
                                         phish_prob=result.get_phish_prob(),
                                         is_phishing=result.get_isPhish())
-
         session.add(scan_result)
         session.commit()
         session.refresh(scan_result)
@@ -22,9 +21,19 @@ def create_ScanResult(url: str, result: URLresult, session: Session):
 
 def get_ScanResult(scan_id: int, session: Session):
     try:
-        url_result = session.query(models.ScanResult).filter(
+        scan_result = session.query(models.ScanResult).filter(
             models.ScanResult.scan_id == scan_id).first()
     except:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Failed to access 'scan_id: {scan_id}' in the database")
-    return url_result
+    return scan_result
+
+
+def search_url(final_url: str, session: Session):
+    try:
+        scan_result = session.query(models.ScanResult).filter(
+            models.ScanResult.final_url == final_url).first()
+    except:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Failed to search for '{final_url}' in the database")
+    return scan_result
