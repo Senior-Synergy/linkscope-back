@@ -24,8 +24,7 @@ def create_ScanResult(request: schemas.ScanResultCreate, db: Session):
     new_url = models.ScanResult(url = request.url,
                             final_url = final_url, 
                             phish_prob = obj.get_phish_prob(),
-                            is_phishing = obj.get_isPhish(),
-                            is_active = 1)
+                            is_phishing = obj.get_isPhish())
     db.add(new_url)
     db.commit()
     db.refresh(new_url)
@@ -34,6 +33,7 @@ def create_ScanResult(request: schemas.ScanResultCreate, db: Session):
 
 def get_ScanResult(scan_id : int, db: Session):
     url_result = db.query(models.ScanResult).filter(models.ScanResult.scan_id == scan_id ).first()
+    print(url_result)
     if not url_result:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"URL with the id {scan_id} is not found")

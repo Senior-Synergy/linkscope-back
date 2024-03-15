@@ -7,9 +7,9 @@ from .database import Base
 class ScanResult(Base):
     __tablename__ = 'url_results'
     scan_id = Column(Integer, primary_key=True, index=True)
-    url = Column(String(255))
-    final_url = Column(String(255))
-    phish_prob = Column(Float)
+    url = Column(String(2000))
+    final_url = Column(String(2000))
+    phish_prob = Column(Float(10,2))
     is_phishing = Column(Boolean)
     is_active = Column(Boolean, default=True)
     time_created = Column(DateTime(timezone=True), server_default=func.now())

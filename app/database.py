@@ -1,7 +1,8 @@
 # Database Initializtion
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base #for mapping
 from sqlalchemy.orm import sessionmaker
+
 
 import json
 with open('config.json') as f:

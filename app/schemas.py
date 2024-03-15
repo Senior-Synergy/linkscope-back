@@ -1,6 +1,8 @@
 # Pydantic model
 from typing import Union, List, Optional
-from pydantic import BaseModel
+#Afrom datetime import datetime
+from pydantic import BaseModel, validator
+from datetime import datetime
 
 # model
 class ScanResultBase(BaseModel):
@@ -17,7 +19,7 @@ class  ScanResult(ScanResultBase):
     phish_prob: float
     is_phishing: bool
     is_active : bool
-    time_created : str
+    time_created : datetime
 
     class Config():
         orm_mode = True
