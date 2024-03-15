@@ -1,18 +1,17 @@
 from urllib.parse import urlparse
-from tld import get_tld, is_tld
+from bs4 import BeautifulSoup
 import tldextract
 import whois
 import datetime
 from datetime import datetime
 import time
-from bs4 import BeautifulSoup
 import re
-
 import requests
+
 headers = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 
 
-class FeatureExtraction:
+class URLFeatures:
     features = []
 
     def __init__(self, urlt):
@@ -21,13 +20,13 @@ class FeatureExtraction:
         self.url = urldata[0]
         self.soup = urldata[1]
         self.urlhistory = urldata[2]
-        #print("get soup successfully")
+        # print("get soup successfully")
 
         try:
             self.w = whois.whois(urlparse(self.url).netloc)
         except Exception:
             self.w = None
-        #print("get whois successfully")
+        # print("get whois successfully")
 
         # self.features.append(urlt)
         # Address bar based features (10)

@@ -1,4 +1,8 @@
-# Example utility function
+import pickle
+import gzip
 
-# def my_utility_function():
-#     return "This is a utility function."
+
+def load_model(filename):
+    with gzip.open(filename, 'rb') as f:
+        model = pickle.load(f)
+    return model

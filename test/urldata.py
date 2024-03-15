@@ -6,7 +6,7 @@ import gzip
 from urllib.parse import urlparse
 warnings.filterwarnings('ignore')
 
-from app.urlfeatures import FeatureExtraction
+from app.urlfeatures import URLFeatures
 
 feature_names = [ 'domainlength', 'www', 'subdomain', 
                  'https', 'http', 'short_url', 'ip', 
@@ -38,13 +38,13 @@ class URLresult:
     
     def __init__(self, url):
         self.url = url #1
-        obj = FeatureExtraction(url)
+        obj = URLFeatures(url)
         features_arr = np.array(obj.getFeaturesList()).reshape(1,29)
         #print(features_arr)
         self.features_df = pd.DataFrame(features_arr, columns = feature_names) #2
     
     def get_final_url(self):
-        return FeatureExtraction.getfinalurl(self.url)[0]
+        return URLFeatures.getfinalurl(self.url)[0]
     
     def get_phish_prob(self):
         return model.predict_proba(self.features_df)[0,1] # Probability to be phishing url
