@@ -3,7 +3,7 @@
 ## Initialization (first time)
 1. Ensure that the current python version is >=3.7 and <=3.11
 2. Create new python environment: `python -m venv .venv`
-3. Activate the environment : `.venv\Scripts\activate`
+3. Activate the environment : `.venv\Scripts\activate` for Mac OS, use: `source .env/bin/activate`
 4. Install all packages in requirement : `pip install -r requirements.txt`
 4. To start the server : `uvicorn app.main:app --reload`
 
