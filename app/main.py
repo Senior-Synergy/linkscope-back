@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import models
 from .database import engine
 
-from .api.api_v1.api import router as router_v1
+from .api.api_v1.url import router as router_v1
 from .api.api_v2.api import router as router_v2
 
 models.Base.metadata.create_all(bind=engine)
@@ -24,6 +24,7 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "Hello, From Backend!"}
+
 
 # API Endpoints
 app.include_router(router_v1, prefix="/api/v1")
