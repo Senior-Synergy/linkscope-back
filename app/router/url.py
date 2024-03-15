@@ -15,7 +15,6 @@ get_db = database.get_db
 # create data to database
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_ScanResult(request: schemas.ScanResultCreate, db: Session = Depends(get_db)):
-    print('hello')
     return url_crud.create_ScanResult(request, db)
 
 # get data from database and return to fontend
