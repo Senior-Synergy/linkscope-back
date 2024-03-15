@@ -6,7 +6,7 @@ import pickle
 import gzip
 from urllib.parse import urlparse
 warnings.filterwarnings('ignore')
-from app.urlfeatures import FeatureExtraction
+from app.urlfeatures import URLFeatures
 
 
 feature_names = [ 'domainlength', 'www', 'subdomain', 
@@ -41,7 +41,7 @@ url = '9418265.fls.doubleclick.net'
 #url = request.form["url"]
 def geturlresults(url):
     # Extract features
-    obj = FeatureExtraction(url)
+    obj = URLFeatures(url)
     x = np.array(obj.getFeaturesList()).reshape(1,29)
     print(x)
     extracted_df = pd.DataFrame(x, columns = feature_names)
