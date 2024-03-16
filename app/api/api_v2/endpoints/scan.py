@@ -8,11 +8,11 @@ from app.utils import load_model
 router = APIRouter()
 get_db = database.get_db
 
-
+'''
 @router.post("/", status_code=status.HTTP_200_OK)
 def scan_url(request: schemas.Url, db_session: Session = Depends(get_db)):
     # initialize
-    url = request.url
+    url = request.urls[0]
     model = load_model("data/model_compressed.gzip")
     result = URLresult(url, model)
     final_url = result.get_final_url()
@@ -33,14 +33,14 @@ def scan_url(request: schemas.Url, db_session: Session = Depends(get_db)):
             return new_scan_result.scan_id
         else:
             return 0
-
+'''
 @router.get("/")
 def read_root():
     return {"message": "Hello, From Backend's /scan!"}
 
 #-------------------Insert all data to DB--------------------------------------------
 @router.post("/list", status_code=status.HTTP_200_OK)
-def scan_all(request: schemas.UrlReport, db_session: Session = Depends(get_db)):
+def scan_all(request: schemas.Url_List, db_session: Session = Depends(get_db)):
    
      # Insert to url_submission table
     report_results = url_crud.create_url_submission(db_session)
