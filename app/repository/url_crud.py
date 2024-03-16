@@ -4,26 +4,27 @@ from fastapi import HTTPException, status
 from app.urlresult import *
 from app.constants import feature_names2
 from typing import List
-import uuid
+import random
 #-----------------------------------------CREATE--------------------------------------------------
 # insert to url_submission table
-def create_ReportResult(session: Session): 
+def create_url_submission(session: Session): 
     try:
-        scan_id = str(uuid.uuid4())
-        report_result = models.ReportResult(scan_id=scan_id)
+        #scan_id = random.randint(100000,999999)
+        report_result = models.URLSubmission()
+        print(f'scan_id is {report_result.scan_id}') 
         session.add(report_result)
         session.commit()
         session.refresh(report_result)
     except Exception as e:
-        print(f'Error is {str(e)}')
+        print(f'Error to create_url_submission is {str(e)}')
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Failed to create a new submission for in the database")
     return report_result
 
 # insert to url_result table
-def create_ScanResult(url: str, scan_id: str, result: URLresult, session: Session):
+def create_url_result(url: str, scan_id: int, result: URLresult, session: Session):
     try:
-        scan_result = models.ScanResult(scan_id=scan_id, 
+        scan_result = models.URLResult(scan_id=scan_id, 
                                         url=url,
                                         final_url=result.get_final_url(),
                                         phish_prob=result.get_phish_prob(),
@@ -31,17 +32,19 @@ def create_ScanResult(url: str, scan_id: str, result: URLresult, session: Sessio
         session.add(scan_result)
         session.commit()
         session.refresh(scan_result)
-    except:
+    except Exception as e:
+        print(f'Error to insert to url_result is {str(e)}')
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Failed to create a new entry for '{url}' in the database")
     return scan_result
 
 # insert to url_features table
-def create_FeatureResult(url_id : int,  result: URLresult, session: Session):
+def create_url_features(url_id : int, final_url : str, result: URLresult, session: Session):
     try:
         features_arr = result.features_arr
         # I will find way to shorten this ....
-        feature_result = models.FeaturesResult(url_id = url_id,
+        feature_result = models.URLFeatures(url_id = url_id,
+                                                final_url = final_url,
                                                 domainlength = features_arr[0][0], #1
                                                 www = features_arr[0][1], # 2
                                                 subdomain = features_arr[0][2] , # 3
@@ -76,15 +79,15 @@ def create_FeatureResult(url_id : int,  result: URLresult, session: Session):
         session.refresh(feature_result)          
          
     except Exception as e:
-        print(f'Error is {str(e)}')
+        print(f'Error to insert url_features is {str(e)}')
         session.rollback()
 
 #-----------------------------------------READ--------------------------------------------------
 
 def get_ScanResult(url_id: int, session: Session):
     try:
-        scan_result = session.query(models.ScanResult).filter(
-            models.ScanResult.url_id == url_id).first()
+        scan_result = session.query(models.URLResult).filter(
+            models.URLResult.url_id == url_id).first()
     except:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Failed to access 'scan_id: {url_id}' in the database")
@@ -93,8 +96,8 @@ def get_ScanResult(url_id: int, session: Session):
 
 def search_url(final_url: str, session: Session):
     try:
-        scan_result = session.query(models.ScanResult).filter(
-            models.ScanResult.final_url == final_url).first()
+        scan_result = session.query(models.URLResult).filter(
+            models.URLResult.final_url == final_url).first()
         
     except Exception as e:
         print(str(e))
@@ -105,10 +108,10 @@ def search_url(final_url: str, session: Session):
 
 
 # Error : get all url result by scan_id(PK of url_submission) 
-def get_ReportResult(scan_id: str, session: Session):
+def get_ReportResult(scan_id: int, session: Session):
     try:
-        report_result = session.query(models.ScanResult).filter(
-        models.ScanResult.scan_id == scan_id).all()
+        report_result = session.query(models.URLResult).filter(
+        models.URLResult.scan_id == scan_id).all()
     except Exception as e:
         print(f'error is {str(e)}')
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

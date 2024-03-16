@@ -26,9 +26,9 @@ def get_result_list(url_id_list: list[int], db_session: Session = Depends(get_db
 
     return scan_result_list
 
-# GET all URL Results
+# GET all URL Results : error
 @router.get("/{scan_id}", status_code=status.HTTP_200_OK)
-def get_result_by_scanid(scan_id : str, db_session: Session = Depends(get_db)):
+def get_result_by_scanid(scan_id :int, db_session: Session = Depends(get_db)):
     try:
         url_results = url_crud.get_ReportResult(scan_id, db_session)
     except Exception as e:
