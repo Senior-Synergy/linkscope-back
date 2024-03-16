@@ -4,14 +4,12 @@ from pydantic import BaseModel
 from datetime import datetime
 
 
+class UrlReport(BaseModel):
+    urls: List[str]
+
 class Url(BaseModel):
     url: str
-
-
-class ScanResultCreate(Url):
-    url: str
-
-
+    
 class ScanResult(Url):
     url_id: int
     final_url: str
@@ -24,6 +22,4 @@ class ScanResult(Url):
         from_attributes = True
 
 
-class UrlReport(BaseModel):
-    urls: List[str]
 

@@ -43,9 +43,10 @@ def read_root():
 def scan_all(request: schemas.UrlReport, db_session: Session = Depends(get_db)):
    
      # Insert to url_submission table
-    report_results = url_crud.create_ReportResult(db_session)
+    report_results = url_crud.create_url_submission(db_session)
     
-    scan_id = report_results.scan_id # Get scan_id 
+    scan_id = report_results.scan_id # Get scan_id
+    #print(f'scan_id is {scan_id}') 
     urls = request.urls
     model = load_model("data/model_compressed.gzip")
     #scan_id = report_results.scan_id
@@ -60,8 +61,8 @@ def scan_all(request: schemas.UrlReport, db_session: Session = Depends(get_db)):
         if not existing_scan_result:
             # Insert to url_result table
             print(f'Start Inserting {url}...')
-            url_result = url_crud.create_ScanResult(url, scan_id, result, db_session) # insert to url_result table
-            feature_result = url_crud.create_FeatureResult(url_result.url_id, result , db_session) # insert to url_features table
+            url_result = url_crud.create_url_result(url, scan_id, result, db_session) # insert to url_result table
+            feature_result = url_crud.create_url_features(url_result.url_id, final_url, result , db_session) # insert to url_features table
         else:
             print(f'Already have {url} with url_id : {existing_scan_result.url_id} inserted in url_results table')
                    

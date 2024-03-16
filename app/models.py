@@ -1,38 +1,38 @@
 from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-import uuid
+import random
 from .database import Base
 
 #from sqlalchemy.orm import sessionmaker
 #from sqlalchemy import create_engine, text
-class ReportResult(Base):
+class URLSubmission(Base):
     __tablename__ = 'url_submission'
     
-    scan_id = Column(String(40), primary_key=True, index=True, default=str(uuid.uuid4))
+    scan_id = Column(Integer, primary_key=True, index=True)
     time_submitted = Column(DateTime(timezone=True), server_default=func.now())
 
-    url_results = relationship("ScanResult", back_populates="url_submission")
+    url_results = relationship("URLResult", back_populates="url_submission")
 
-class ScanResult(Base):
+class URLResult(Base):
     __tablename__ = 'url_results'
-    
-    #url_key = Column(Integer, primary_key=True, index=True)
+
     url_id = Column(Integer, primary_key=True, index=True)
-    scan_id = Column(String(40), ForeignKey('url_submission.scan_id'), index=True)
+    scan_id = Column(Integer, ForeignKey('url_submission.scan_id'))
     url = Column(String(2000))
     final_url = Column(String(2000))
-    phish_prob = Column(Float(5, 4))
+    phish_prob = Column(Float)
     is_phishing = Column(Boolean)
     is_active = Column(Boolean, default=True)
     time_submitted = Column(DateTime(timezone=True), server_default=func.now())
     
-    url_submission = relationship("ReportResult", back_populates="url_results")
-    url_features = relationship("FeaturesResult", uselist=False, back_populates="url_results")
+    url_submission = relationship("URLSubmission", back_populates="url_results")
+    url_features = relationship("URLFeatures", uselist=False, back_populates="url_results")
 
-class FeaturesResult(Base):
+class URLFeatures(Base):
     __tablename__ = 'url_features'
     url_id = Column(Integer, ForeignKey('url_results.url_id'), primary_key=True, index=True)
+    final_url = Column(String(2000))
     domainlength = Column(Integer) #1
     www = Column(Integer) # 2
     subdomain = Column(Integer) # 3
@@ -63,5 +63,5 @@ class FeaturesResult(Base):
     domainage = Column(Integer) # 28
     domainend = Column(Integer) # 29 
     
-    url_results = relationship("ScanResult", back_populates="url_features")
+    url_results = relationship("URLResult", back_populates="url_features")
 

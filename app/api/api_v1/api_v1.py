@@ -15,7 +15,7 @@ get_db = database.get_db
 
 # create data to database
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_urlresult(request: schemas.ScanResultCreate, db: Session = Depends(get_db)):
+def create_urlresult(request: schemas.Url, db: Session = Depends(get_db)):
     
     model = load_model("data/model_compressed.gzip")
     result = URLresult(request.url, model) # result from model
