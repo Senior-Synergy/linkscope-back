@@ -34,9 +34,9 @@ class URLresult:
         self.model = model
         self.url = url #1
         obj = FeatureExtraction(url)
-        features_arr = np.array(obj.getFeaturesList()).reshape(1,29)
+        self.features_arr = np.array(obj.getFeaturesList()).reshape(1,29)
         #print(features_arr)
-        self.features_df = pd.DataFrame(features_arr, columns = feature_names) #2
+        self.features_df = pd.DataFrame(self.features_arr, columns = feature_names) #2
     
     def get_final_url(self):
         return FeatureExtraction(self.url).url

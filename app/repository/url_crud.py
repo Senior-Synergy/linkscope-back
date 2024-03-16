@@ -2,11 +2,29 @@ from sqlalchemy.orm import Session
 from app import models, schemas
 from fastapi import HTTPException, status
 from app.urlresult import *
-
-
-def create_ScanResult(url: str, result: URLresult, session: Session):
+from app.constants import feature_names2
+from typing import List
+import uuid
+#-----------------------------------------CREATE--------------------------------------------------
+# insert to url_submission table
+def create_ReportResult(session: Session): 
     try:
-        scan_result = models.ScanResult(url=url,
+        scan_id = str(uuid.uuid4())
+        report_result = models.ReportResult(scan_id=scan_id)
+        session.add(report_result)
+        session.commit()
+        session.refresh(report_result)
+    except Exception as e:
+        print(f'Error is {str(e)}')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Failed to create a new submission for in the database")
+    return report_result
+
+# insert to url_result table
+def create_ScanResult(url: str, scan_id: str, result: URLresult, session: Session):
+    try:
+        scan_result = models.ScanResult(scan_id=scan_id, 
+                                        url=url,
                                         final_url=result.get_final_url(),
                                         phish_prob=result.get_phish_prob(),
                                         is_phishing=result.get_isPhish())
@@ -18,14 +36,58 @@ def create_ScanResult(url: str, result: URLresult, session: Session):
                             detail=f"Failed to create a new entry for '{url}' in the database")
     return scan_result
 
+# insert to url_features table
+def create_FeatureResult(url_id : int,  result: URLresult, session: Session):
+    try:
+        features_arr = result.features_arr
+        # I will find way to shorten this ....
+        feature_result = models.FeaturesResult(url_id = url_id,
+                                                domainlength = features_arr[0][0], #1
+                                                www = features_arr[0][1], # 2
+                                                subdomain = features_arr[0][2] , # 3
+                                                https = features_arr[0][3] , # 4
+                                                http = features_arr[0][4] , # 5
+                                                short_url = features_arr[0][5] , # 6
+                                                ip = features_arr[0][6] , # 7
+                                                at_count = features_arr[0][7], # 8
+                                                dash_count = features_arr[0][8] , # 9
+                                                equal_count = features_arr[0][9] , # 10
+                                                dot_count = features_arr[0][10] , # 11
+                                                underscore_count = features_arr[0][11] , # 12
+                                                slash_count = features_arr[0][12] , # 13
+                                                digit_count= features_arr[0][13] , # 14
+                                                log_contain = features_arr[0][14] , # 15
+                                                pay_contain = features_arr[0][15], # 16
+                                                web_contain = features_arr[0][16], #17
+                                                cmd_contain = features_arr[0][17], # 18
+                                                account_contain= features_arr[0][18], # 19
+                                                pc_emptylink = features_arr[0][19] , # 20
+                                                pc_extlink = features_arr[0][20], # 21
+                                                pc_requrl= features_arr[0][21] , # 22
+                                                zerolink = features_arr[0][22] , # 23
+                                                ext_favicon = features_arr[0][23], # 24
+                                                submit_to_email = features_arr[0][24] , # 25
+                                                sfh = features_arr[0][25] , # 26
+                                                redirection = features_arr[0][26], # 27
+                                                domainage = features_arr[0][27] , # 28
+                                                domainend = features_arr[0][28] ) # 29 
+        session.add(feature_result)
+        session.commit()
+        session.refresh(feature_result)          
+         
+    except Exception as e:
+        print(f'Error is {str(e)}')
+        session.rollback()
 
-def get_ScanResult(scan_id: int, session: Session):
+#-----------------------------------------READ--------------------------------------------------
+
+def get_ScanResult(url_id: int, session: Session):
     try:
         scan_result = session.query(models.ScanResult).filter(
-            models.ScanResult.scan_id == scan_id).first()
+            models.ScanResult.url_id == url_id).first()
     except:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Failed to access 'scan_id: {scan_id}' in the database")
+                            detail=f"Failed to access 'scan_id: {url_id}' in the database")
     return scan_result
 
 
@@ -33,7 +95,23 @@ def search_url(final_url: str, session: Session):
     try:
         scan_result = session.query(models.ScanResult).filter(
             models.ScanResult.final_url == final_url).first()
-    except:
+        
+    except Exception as e:
+        print(str(e))
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Failed to search for '{final_url}' in the database")
+        
     return scan_result
+
+
+# Error : get all url result by scan_id(PK of url_submission) 
+def get_ReportResult(scan_id: str, session: Session):
+    try:
+        report_result = session.query(models.ScanResult).filter(
+        models.ScanResult.scan_id == scan_id).all()
+    except Exception as e:
+        print(f'error is {str(e)}')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Failed to access 'scan_id: {scan_id}' in the database")
+    #print(report_result)
+    return report_result

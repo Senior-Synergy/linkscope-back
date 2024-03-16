@@ -16,24 +16,53 @@ def scan_url(request: schemas.Url, db_session: Session = Depends(get_db)):
     model = load_model("data/model_compressed.gzip")
     result = URLresult(url, model)
     final_url = result.get_final_url()
-
+    
     # check if URL (with final_url) is already in the DB.
     existing_scan_result = url_crud.search_url(final_url, db_session)
-
+    
     # note: should we update if phish prob is different?
-
+    
     if existing_scan_result:
         return existing_scan_result.scan_id
     else:
-        # create new url entry in DB
+         # create new url entry in DB
         new_scan_result = url_crud.create_ScanResult(
-            url, result, db_session)
+            url, result, db_session)  
+     
         if new_scan_result:
             return new_scan_result.scan_id
         else:
             return 0
 
-
 @router.get("/")
 def read_root():
     return {"message": "Hello, From Backend's /scan!"}
+
+#-------------------Insert all data to DB--------------------------------------------
+@router.post("/list", status_code=status.HTTP_200_OK)
+def scan_all(request: schemas.UrlReport, db_session: Session = Depends(get_db)):
+   
+     # Insert to url_submission table
+    report_results = url_crud.create_ReportResult(db_session)
+    
+    scan_id = report_results.scan_id # Get scan_id 
+    urls = request.urls
+    model = load_model("data/model_compressed.gzip")
+    #scan_id = report_results.scan_id
+    for url in urls:
+        # Get final_url
+        result = URLresult(url, model)
+        final_url = result.get_final_url()
+               
+        # Search whether to insert ot not
+        existing_scan_result = url_crud.search_url(final_url, db_session)
+       
+        if not existing_scan_result:
+            # Insert to url_result table
+            print(f'Start Inserting {url}...')
+            url_result = url_crud.create_ScanResult(url, scan_id, result, db_session) # insert to url_result table
+            feature_result = url_crud.create_FeatureResult(url_result.url_id, result , db_session) # insert to url_features table
+        else:
+            print(f'Already have {url} with url_id : {existing_scan_result.url_id} inserted in url_results table')
+                   
+    return report_results

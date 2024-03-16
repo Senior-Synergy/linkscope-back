@@ -33,7 +33,7 @@ def load_zipped_pickle(filename):
     with gzip.open(filename, 'rb') as f:
         loaded_object = pickle.load(f)
         return loaded_object
-model = load_zipped_pickle("data/model_new.gzip")
+model = load_zipped_pickle("data/model_compressed.gzip")
 
 #file.close()
 url = '9418265.fls.doubleclick.net'
@@ -45,6 +45,10 @@ def geturlresults(url):
     x = np.array(obj.getFeaturesList()).reshape(1,29)
     print(x)
     extracted_df = pd.DataFrame(x, columns = feature_names)
+    print(extracted_df)
+    
+
+    
 
     #1 Prediction 
     y_pred = model.predict(extracted_df)[0]                 # 0 means safe, 1 means phish
