@@ -11,7 +11,6 @@ def create_url_submission(session: Session):
     try:
         #scan_id = random.randint(100000,999999)
         report_result = models.URLSubmission()
-        print(f'scan_id is {report_result.scan_id}') 
         session.add(report_result)
         session.commit()
         session.refresh(report_result)
@@ -83,17 +82,6 @@ def create_url_features(url_id : int, final_url : str, result: URLresult, sessio
         session.rollback()
 
 #-----------------------------------------READ--------------------------------------------------
-
-def get_ScanResult(url_id: int, session: Session):
-    try:
-        scan_result = session.query(models.URLResult).filter(
-            models.URLResult.url_id == url_id).first()
-    except:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Failed to access 'scan_id: {url_id}' in the database")
-    return scan_result
-
-
 def search_url(final_url: str, session: Session):
     try:
         scan_result = session.query(models.URLResult).filter(
@@ -106,12 +94,22 @@ def search_url(final_url: str, session: Session):
         
     return scan_result
 
+def get_url_result_by_url_id(url_id: int, session: Session):
+    try:
+        scan_result = session.query(models.URLResult).filter(
+            models.URLResult.url_id == url_id).first()
+    except Exception as e:
+        print(f'Error to get url result by url_id is {str(e)}')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Failed to access 'scan_id: {url_id}' in the database")
+    return scan_result
 
 # Error : get all url result by scan_id(PK of url_submission) 
-def get_ReportResult(scan_id: int, session: Session):
+def get_url_result_by_scan_id(scan_id: int, session: Session):
     try:
         report_result = session.query(models.URLResult).filter(
         models.URLResult.scan_id == scan_id).all()
+        print(f'report_result is {report_result}')
     except Exception as e:
         print(f'error is {str(e)}')
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
