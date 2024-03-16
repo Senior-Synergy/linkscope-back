@@ -13,7 +13,7 @@ class ScanResultCreate(Url):
 
 
 class ScanResult(Url):
-    scan_id: int
+    url_id: int
     final_url: str
     phish_prob: float
     is_phishing: bool
@@ -22,4 +22,8 @@ class ScanResult(Url):
 
     class Config():
         from_attributes = True
+
+
+class UrlReport(BaseModel):
+    urls: List[str]
 

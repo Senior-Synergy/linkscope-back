@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from .urlfeatures import URLFeatures
-from .constants import feature_names
+from .constants import feature_names, feature_names2
 
 
 class URLresult:
@@ -9,9 +9,9 @@ class URLresult:
         self.model = model
         self.url = url  # 1
         obj = URLFeatures(url)
-        features_arr = np.array(obj.getFeaturesList()).reshape(1, 29)
+        self.features_arr = np.array(obj.getFeaturesList()).reshape(1, 29)
         self.features_df = pd.DataFrame(
-            features_arr, columns=feature_names)  # 2
+            self.features_arr, columns=feature_names)  # 2
 
     def get_final_url(self):
         return URLFeatures(self.url).url
@@ -23,3 +23,4 @@ class URLresult:
     def get_isPhish(self):
         # 0 means safe, 1 means phish
         return self.model.predict(self.features_df)[0]
+
