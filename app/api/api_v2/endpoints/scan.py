@@ -66,4 +66,4 @@ def scan_all(request: schemas.Url_List, db_session: Session = Depends(get_db)):
         else:
             print(f'Already have {url} with url_id : {existing_scan_result.url_id} inserted in url_results table')
                    
-    return report_results
+    return report_results.scan_id
