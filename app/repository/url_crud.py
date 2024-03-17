@@ -21,11 +21,14 @@ def create_submission(session: Session):
     return submission_data
 
 # insert to result table
-def create_result(submission_id :int, url_id : int, submitted_url : str, session: Session):
+def create_result(submission_id :int, url_id : int, feature_id : int, submitted_url : str, result: URLresult, session: Session):
     try:
         result_data = models.Result(submission_id=submission_id,
                                      url_id = url_id,
-                                     submitted_url = submitted_url)
+                                     feature_id = feature_id,
+                                     submitted_url = submitted_url,
+                                     phish_prob=result.get_phish_prob(),
+                                    is_phishing=result.get_isPhish())
         session.add(result_data)
         session.commit()
         session.refresh(result_data)
@@ -36,12 +39,9 @@ def create_result(submission_id :int, url_id : int, submitted_url : str, session
     return result_data
 
 # insert to url table
-def create_url(feature_id: int, result: URLresult, session: Session):
+def create_url(result: URLresult, session: Session):
     try:
-        url_data = models.Url(feature_id = feature_id, 
-                                       final_url=result.get_final_url(),
-                                        phish_prob=result.get_phish_prob(),
-                                        is_phishing=result.get_isPhish())
+        url_data = models.Url(final_url=result.get_final_url())
         session.add(url_data)
         session.commit()
         session.refresh(url_data)
@@ -122,13 +122,20 @@ def get_url_data_by_url_id(url_id: int, session: Session):
 '''
 def get_url_data_by_submission_id(submission_id: int, session: Session):
     try:
-        url_result = session.query(models.Url).join(
-            models.Result, models.Result.url_id == models.Url.url_id).filter(
-            models.Result.submission_id == submission_id
-            )
-        print(f'report_result is {url_result}')
+        url_result = session.query(models.Result).join(
+            models.Url, models.Url.url_id == models.Url.url_id).filter(
+            models.Result.submission_id == submission_id)
+        print(url_result)
     except Exception as e:
         print(f'error is {str(e)}')
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Failed to access 'scan_id: {submission_id}' in the database")
     return url_result
+
+'''
+# How to join Syntax
+   url_result = session.query(models.Url).join(
+            models.Result, models.Result.url_id == models.Url.url_id).filter(
+            models.Result.submission_id == submission_id
+            )
+'''

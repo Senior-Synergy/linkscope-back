@@ -11,10 +11,11 @@ class Url_List(BaseModel):
 
 class Url_Result(BaseModel):
     url_id: int
-    final_url: str
+    #final_url : str
+    submitted_url: str
     phish_prob: float
     is_phishing: bool
-    time_created: datetime
+    datetime_created: datetime
 
     class Config():
         from_attributes = True

@@ -10,7 +10,7 @@ class Submission(Base):
     __tablename__ = 'submission'
     
     submission_id = Column(Integer, primary_key=True, index=True)
-    time_submitted = Column(DateTime(timezone=True), server_default=func.now())
+    datetime_submitted = Column(DateTime(timezone=True), server_default=func.now())
 
     result = relationship("Result", back_populates="submission")
 
@@ -20,23 +20,22 @@ class Result(Base):
     result_id = Column(Integer, primary_key=True, index=True)
     submission_id = Column(Integer, ForeignKey('submission.submission_id'))
     url_id = Column(Integer, ForeignKey('url.url_id'))
+    feature_id = Column(Integer, ForeignKey('feature.feature_id'))
     submitted_url = Column(String(2000))
-    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    phish_prob = Column(Float)
+    is_phishing = Column(Boolean)
+    datetime_created = Column(DateTime(timezone=True), server_default=func.now())
 
     submission = relationship("Submission", back_populates="result")
     url = relationship("Url", back_populates="result")
+    feature = relationship("Feature", back_populates="result")
 
 
 class Url(Base):
     __tablename__ = 'url'
     url_id = Column(Integer, primary_key=True, index=True)
-    feature_id = Column(Integer, ForeignKey('feature.feature_id'))
     final_url = Column(String(2000))
-    phish_prob = Column(Float)
-    is_phishing = Column(Boolean)
-    time_created = Column(DateTime(timezone=True), server_default=func.now())
-    
-    feature = relationship("Feature", back_populates="url")
+        
     result = relationship("Result", back_populates="url")
     #feature = relationship("Feature", uselist=False, back_populates="url")
 
@@ -73,5 +72,5 @@ class Feature(Base):
     domainage = Column(Integer) # 28
     domainend = Column(Integer) # 29 
     
-    url = relationship("Url", back_populates="feature")
+    result = relationship("Result", back_populates="feature")
 
