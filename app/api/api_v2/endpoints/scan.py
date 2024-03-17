@@ -51,13 +51,17 @@ def scan_all(request: schemas.Url_List, db_session: Session = Depends(get_db)):
     model = load_model("data/model_compressed.gzip")
     #scan_id = report_results.scan_id
     for url in urls:
-        # Get final_url
+        # Get URLresult
         result = URLresult(url, model)
         #final_url = result.get_final_url()
-
-        feature_data = url_crud.create_feature(result,db_session)
-        url_data = url_crud.create_url(feature_data.feature_id ,result, db_session)
-        result_data = url_crud.create_result(submission_data.submission_id, url_data.url_id, url, db_session)
+        url_data = url_crud.create_url(result, db_session)
+        feature_data = url_crud.create_feature(result, db_session)      
+        result_data = url_crud.create_result(submission_data.submission_id, 
+                                             url_data.url_id,
+                                             feature_data.feature_id,
+                                             url,
+                                             result, 
+                                             db_session)
         
         '''     
         # Search whether to insert ot not
@@ -71,6 +75,4 @@ def scan_all(request: schemas.Url_List, db_session: Session = Depends(get_db)):
         else:
             print(f'Already have {url} with url_id : {existing_scan_result.url_id} inserted in url_results table')
         '''
-
-
     return submission_data.submission_id
