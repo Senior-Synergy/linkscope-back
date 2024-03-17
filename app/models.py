@@ -6,33 +6,43 @@ from .database import Base
 
 #from sqlalchemy.orm import sessionmaker
 #from sqlalchemy import create_engine, text
-class URLSubmission(Base):
-    __tablename__ = 'url_submission'
+class Submission(Base):
+    __tablename__ = 'submission'
     
-    scan_id = Column(Integer, primary_key=True, index=True)
+    submission_id = Column(Integer, primary_key=True, index=True)
     time_submitted = Column(DateTime(timezone=True), server_default=func.now())
 
-    url_results = relationship("URLResult", back_populates="url_submission")
+    result = relationship("Result", back_populates="submission")
 
-class URLResult(Base):
-    __tablename__ = 'url_results'
+class Result(Base):
+    __tablename__ = 'result'
 
+    result_id = Column(Integer, primary_key=True, index=True)
+    submission_id = Column(Integer, ForeignKey('submission.submission_id'))
+    url_id = Column(Integer, ForeignKey('url.url_id'))
+    submitted_url = Column(String(2000))
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+
+    submission = relationship("Submission", back_populates="result")
+    url = relationship("Url", back_populates="result")
+
+
+class Url(Base):
+    __tablename__ = 'url'
     url_id = Column(Integer, primary_key=True, index=True)
-    scan_id = Column(Integer, ForeignKey('url_submission.scan_id'))
-    url = Column(String(2000))
+    feature_id = Column(Integer, ForeignKey('feature.feature_id'))
     final_url = Column(String(2000))
     phish_prob = Column(Float)
     is_phishing = Column(Boolean)
-    is_active = Column(Boolean, default=True)
-    time_submitted = Column(DateTime(timezone=True), server_default=func.now())
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
     
-    url_submission = relationship("URLSubmission", back_populates="url_results")
-    url_features = relationship("URLFeatures", uselist=False, back_populates="url_results")
+    feature = relationship("Feature", back_populates="url")
+    result = relationship("Result", back_populates="url")
+    #feature = relationship("Feature", uselist=False, back_populates="url")
 
-class URLFeatures(Base):
-    __tablename__ = 'url_features'
-    url_id = Column(Integer, ForeignKey('url_results.url_id'), primary_key=True, index=True)
-    final_url = Column(String(2000))
+class Feature(Base):
+    __tablename__ = 'feature'
+    feature_id = Column(Integer, primary_key=True, index=True)
     domainlength = Column(Integer) #1
     www = Column(Integer) # 2
     subdomain = Column(Integer) # 3
@@ -63,5 +73,5 @@ class URLFeatures(Base):
     domainage = Column(Integer) # 28
     domainend = Column(Integer) # 29 
     
-    url_results = relationship("URLResult", back_populates="url_features")
+    url = relationship("Url", back_populates="feature")
 
