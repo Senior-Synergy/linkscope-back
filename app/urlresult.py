@@ -23,4 +23,3 @@ class URLresult:
     def get_isPhish(self):
         # 0 means safe, 1 means phish
         return self.model.predict(self.features_df)[0]
-

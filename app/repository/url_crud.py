@@ -20,23 +20,6 @@ def create_submission(session: Session):
                             detail=f"Failed to create a new submission_data")
     return submission_data
 
-# insert to result table
-def create_result(submission_id :int, url_id : int, feature_id : int, submitted_url : str, result: URLresult, session: Session):
-    try:
-        result_data = models.Result(submission_id=submission_id,
-                                     url_id = url_id,
-                                     feature_id = feature_id,
-                                     submitted_url = submitted_url,
-                                     phish_prob=result.get_phish_prob(),
-                                    is_phishing=result.get_isPhish())
-        session.add(result_data)
-        session.commit()
-        session.refresh(result_data)
-    except Exception as e:
-        print(f'Error to insert to url_result is {str(e)}')
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Failed to create a new result_data")
-    return result_data
 
 # insert to url table
 def create_url(result: URLresult, session: Session):
@@ -94,6 +77,40 @@ def create_feature(result: URLresult, session: Session):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Failed to create a new feature_data")
     return feature_data
+
+# insert to result table
+def create_result(submission_id :int, url_id : int, feature_id : int, submitted_url : str, result: URLresult, session: Session):
+    try:
+        result_data = models.Result(submission_id=submission_id,
+                                     url_id = url_id,
+                                     feature_id = feature_id,
+                                     submitted_url = submitted_url,
+                                     phish_prob=result.get_phish_prob(),
+                                    is_phishing=result.get_isPhish())
+        session.add(result_data)
+        session.commit()
+        session.refresh(result_data)
+    except Exception as e:
+        print(f'Error to insert to url_result is {str(e)}')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Failed to create a new result_data")
+    return result_data
+
+
+#-------------------------------------Bulk Insert-----------------------------------------------
+def create_all(submission_data : models.Submission, url_objects : List[models.Url], feature_objects : List[models.Feature], result_objects : List[models.Result], session: Session):
+    try: 
+        session.add(submission_data)
+        session.add_all(url_objects)
+        session.add_all(feature_objects)
+        session.add_all(result_objects)
+        session.commit()
+        #session.refresh()
+    except Exception as e:
+        print(f'Error to insert to url_result is {str(e)}')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Failed to create all")
+    return submission_data.submission_id
 
 
 #-----------------------------------------READ--------------------------------------------------
