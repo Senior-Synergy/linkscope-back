@@ -8,38 +8,13 @@ from app.utils import load_model
 router = APIRouter()
 get_db = database.get_db
 
-'''
-@router.post("/", status_code=status.HTTP_200_OK)
-def scan_url(request: schemas.Url_submission, db_session: Session = Depends(get_db)):
-    # initialize
-    url = request.urls[0]
-    model = load_model("data/model_compressed.gzip")
-    result = URLresult(url, model)
-    final_url = result.get_final_url()
-    
-    # check if URL (with final_url) is already in the DB.
-    existing_scan_result = url_crud.search_url(final_url, db_session)
-    
-    # note: should we update if phish prob is different?
-    
-    if existing_scan_result:
-        return existing_scan_result.scan_id
-    else:
-         # create new url entry in DB
-        new_scan_result = url_crud.create_ScanResult(
-            url, result, db_session)  
-     
-        if new_scan_result:
-            return new_scan_result.scan_id
-        else:
-            return 0
-'''
+
 @router.get("/")
 def read_root():
     return {"message": "Hello, From Backend's /scan!"}
 
 #------------------- Scan and Bulk Insert all data to DB (faster) ----------------------------------------
-@router.post("/list2", status_code=status.HTTP_200_OK)
+@router.post("/list", status_code=status.HTTP_200_OK)
 def scan_all_ver2(request: schemas.Url_submission_list, db_session: Session = Depends(get_db)):
     
     # List of Data to be inserted
@@ -98,3 +73,30 @@ def scan_all_ver2(request: schemas.Url_submission_list, db_session: Session = De
     submission_id = url_crud.create_all_result(submission_data, url_objects, feature_objects, result_objects, db_session)   
     
     return submission_id
+
+'''
+@router.post("/", status_code=status.HTTP_200_OK)
+def scan_url(request: schemas.Url_submission, db_session: Session = Depends(get_db)):
+    # initialize
+    url = request.urls[0]
+    model = load_model("data/model_compressed.gzip")
+    result = URLresult(url, model)
+    final_url = result.get_final_url()
+    
+    # check if URL (with final_url) is already in the DB.
+    existing_scan_result = url_crud.search_url(final_url, db_session)
+    
+    # note: should we update if phish prob is different?
+    
+    if existing_scan_result:
+        return existing_scan_result.scan_id
+    else:
+         # create new url entry in DB
+        new_scan_result = url_crud.create_ScanResult(
+            url, result, db_session)  
+     
+        if new_scan_result:
+            return new_scan_result.scan_id
+        else:
+            return 0
+'''
