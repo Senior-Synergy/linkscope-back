@@ -42,6 +42,7 @@ class URLresult:
         features_arr = np.array(obj.getFeaturesList()).reshape(1,29)
         #print(features_arr)
         self.features_df = pd.DataFrame(features_arr, columns = feature_names) #2
+        
     
     def get_final_url(self):
         return URLFeatures.getfinalurl(self.url)[0]

@@ -1,7 +1,7 @@
-from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-import random
+from sqlalchemy.types import JSON
 from .database import Base
 
 #from sqlalchemy.orm import sessionmaker
@@ -35,6 +35,8 @@ class Url(Base):
     __tablename__ = 'url'
     url_id = Column(Integer, primary_key=True, index=True)
     final_url = Column(String(2000))
+    extra_features = Column(JSON)
+    whois_features = Column(Text)
         
     result = relationship("Result", back_populates="url")
     #feature = relationship("Feature", uselist=False, back_populates="url")

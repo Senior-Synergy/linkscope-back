@@ -10,7 +10,7 @@ get_db = database.get_db
 
 '''
 @router.post("/", status_code=status.HTTP_200_OK)
-def scan_url(request: schemas.Url, db_session: Session = Depends(get_db)):
+def scan_url(request: schemas.Url_submission, db_session: Session = Depends(get_db)):
     # initialize
     url = request.urls[0]
     model = load_model("data/model_compressed.gzip")
@@ -38,45 +38,9 @@ def scan_url(request: schemas.Url, db_session: Session = Depends(get_db)):
 def read_root():
     return {"message": "Hello, From Backend's /scan!"}
 
-#-------------------Insert all data to DB--------------------------------------------
-@router.post("/list", status_code=status.HTTP_200_OK)
-def scan_all(request: schemas.Url_List, db_session: Session = Depends(get_db)):
-   
-     # Insert to url_submission table
-    submission_data = url_crud.create_submission(db_session)
-
-    urls = request.urls
-    model = load_model("data/model_compressed.gzip")
-    for url in urls:
-        # Get URLresult
-        result = URLresult(url, model)
-        #final_url = result.get_final_url()
-        url_data = url_crud.create_url(result, db_session)
-        feature_data = url_crud.create_feature(result, db_session)
-        result_data = url_crud.create_result(submission_data.submission_id, 
-                                             url_data.url_id,
-                                             feature_data.feature_id,
-                                             url,
-                                             result, 
-                                             db_session)
-        
-        '''     
-        # Search whether to insert ot not
-        existing_scan_result = url_crud.search_url(final_url, db_session)
-       
-        if not existing_scan_result:
-            # Insert to url_result table
-            print(f'Start Inserting {url}...')
-            url_result = url_crud.create_url_result(url, scan_id, result, db_session) # insert to url_result table
-            feature_result = url_crud.create_url_features(url_result.url_id, final_url, result , db_session) # insert to url_features table
-        else:
-            print(f'Already have {url} with url_id : {existing_scan_result.url_id} inserted in url_results table')
-        '''
-    return submission_data.submission_id
-
-#------------------- Bulk Insert all data to DB (faster) ----------------------------------------
+#------------------- Scan and Bulk Insert all data to DB (faster) ----------------------------------------
 @router.post("/list2", status_code=status.HTTP_200_OK)
-def scan_all_ver2(request: schemas.Url_List, db_session: Session = Depends(get_db)):
+def scan_all_ver2(request: schemas.Url_submission_list, db_session: Session = Depends(get_db)):
     
     # List of Data to be inserted
     url_objects = []
@@ -84,14 +48,17 @@ def scan_all_ver2(request: schemas.Url_List, db_session: Session = Depends(get_d
     result_objects = []
     urls = request.urls
     submission_data = models.Submission()
+    model = load_model("data/model_compressed.gzip")
 
     for i,url in enumerate(urls):
         # Get URL result
-        model = load_model("data/model_compressed.gzip")
         result = URLresult(url, model)
         features_arr = result.features_arr
         # append to list
-        url_objects.append(models.Url(final_url=result.get_final_url()))
+        print(f'Inserting {url} to db')
+        url_objects.append(models.Url(final_url=result.get_final_url(),
+                                      extra_features= result.get_extra_features(),
+                                      whois_features= result.get_whois_features()))         
         feature_objects.append(models.Feature(domainlength = features_arr[0][0], #1
                                 www = features_arr[0][1], # 2
                                 subdomain = features_arr[0][2] , # 3
@@ -128,6 +95,6 @@ def scan_all_ver2(request: schemas.Url_List, db_session: Session = Depends(get_d
                                 url = url_objects[i],
                                 feature = feature_objects[i]))
     
-    submission_id = url_crud.create_all(submission_data, url_objects, feature_objects, result_objects, db_session)   
+    submission_id = url_crud.create_all_result(submission_data, url_objects, feature_objects, result_objects, db_session)   
     
     return submission_id
