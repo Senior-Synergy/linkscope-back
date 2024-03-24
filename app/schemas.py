@@ -11,15 +11,17 @@ class Url_submission_list(BaseModel):
 
 class Url(BaseModel):
     final_url: str
-    extra_features : dict
-    whois_features : str
-    
+    #extra_features : dict
+    #whois_features : str
+    ''' 
     # Convert json-formattes string to dict
     @field_validator('whois_features')
     def parse_extra_features(cls, value):
         if isinstance(value, str):
             return json.loads(value)
         return value
+    '''
+    
 class Feature(BaseModel):
     domainlength : int #1
     www : int  # 2

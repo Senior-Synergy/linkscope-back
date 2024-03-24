@@ -17,6 +17,7 @@ def read_root():
 def get_all(submission_id :int, db_session: Session = Depends(get_db)):
     try:
         url_results = url_crud.get_all_result_by_submission_id(submission_id, db_session)
+        print(url_results)
     except Exception as e:
         print(f'Error is {str(e)}')
     return url_results
