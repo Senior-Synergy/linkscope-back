@@ -55,10 +55,24 @@ class Feature(BaseModel):
     
     # Convert json-formattes string to dict
     @field_validator('pc_emptylink', 'pc_extlink', 'pc_requrl')
-    def parse_extra_features(cls, value):
-        if isinstance(value, float):
-            return round(value, 2)
-        return value 
+    @classmethod
+    def round_float(cls, value: float):
+        if value == -1:
+            return None
+        return round(value, 2)
+    
+    @field_validator('www', 'subdomain', 'https', 'http','short_url', 'ip', 'log_contain', 'pay_contain', 'web_contain', 'cmd_contain'
+                     , 'account_contain', 'zerolink', 'ext_favicon', 'submit_to_email', 'sfh', 'redirection', 'domainage', 'domainend')
+    @classmethod
+    def cast_to_bool(cls, value: int):
+        if value == -1:
+            return None
+        elif value == 0:
+            return False
+        elif value == 1:
+            return True
+  
+    
 class Result(BaseModel):
     url_id: int
     submitted_url: str

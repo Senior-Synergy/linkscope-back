@@ -39,7 +39,7 @@ def get_all_result_by_submission_id(submission_id: int, session: Session):
     try:
         url_result = session.query(models.Result).join(
             models.Url, models.Url.url_id == models.Url.url_id).filter(
-            models.Result.submission_id == submission_id)
+            models.Result.submission_id == submission_id).all()
     except Exception as e:
         print(f'error is {str(e)}')
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
