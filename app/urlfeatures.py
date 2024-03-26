@@ -7,6 +7,7 @@ from datetime import datetime
 import time
 import re
 import requests
+import json
 
 
 headers = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -14,64 +15,143 @@ headers = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, 
 class URLFeatures:
     #features = [] 
     def __init__(self, urlt):
-        self.features = []
-        self.extra_features = {}
-
+       
         urldata = self.getfinalurl(urlt)
         self.url = urldata[0]
         self.soup = urldata[1]
         self.urlhistory = urldata[2]
+               
+        self.hostname = self.get_hostname() # or domain name
+        self.domain = self.get_domain()
+        self.subdomains = self.get_subdomain()
+        self.scheme = self.get_scheme()
+        self.shortten_url = self.get_shorturl()
+        self.ip_in_url = self.get_ip_in_url()
 
-        # print("get soup successfully")
+        # all links
+        self.all_links = self.get_all_links()
+        # count all links
+        self.len_all_links = len(self.all_links)
 
+        # count empty link
+        self.len_empty_links = self.count_empty_links()
+        
+        # external links
+        self.external_links = self.get_external_links()
+        # count external links
+        self.len_external_links = len(self.external_links)
+
+        # all img, audio, embed, iframe requrl
+        self.img_requrl = self.get_img_requrl()        
+        self.audio_requrl = self.get_audio_requrl()
+        self.embed_requrl = self.get_embed_img_requrl()
+        self.iframe_requrl = self.get_iframe_requrl()
+        # count all img, audio, embed, iframe requrl
+        self.len_img_requrl = len(self.img_requrl)
+        self.len_audio_requrl = len(self.audio_requrl)
+        self.len_embed_requrl = len(self.embed_requrl)
+        self.len_iframe_requrl = len(self.iframe_requrl)
+        self.len_all_requrl = self.len_img_requrl + self.len_audio_requrl + self.len_embed_requrl + self.len_iframe_requrl
+
+        # external requrl
+        self.external_img_requrl = self.get_external_img_requrl()
+        self.external_audio_requrl = self.get_external_audio_requrl()
+        self.external_embed_requrl = self.get_external_embed_requrl()
+        self.external_iframe_requrl = self.get_external_iframe_requrl()
+        # count all external img, audio, embed, iframe requrl
+        self.len_external_img_requrl = len(self.external_img_requrl)
+        self.len_external_audio_requrl = len(self.external_audio_requrl)
+        self.len_external_embed_requrl = len(self.external_embed_requrl)
+        self.len_external_iframe_requrl = len(self.external_iframe_requrl)
+        self.len_all_external_requrl = self.len_external_img_requrl + self.len_external_audio_requrl + self.len_external_embed_requrl + self.len_external_iframe_requrl
+        
+        # external favicon
+        self.external_favicon = self.get_external_favicon() 
+        # count external favicon
+        self.len_external_favicon = len(self.external_favicon)
+        
         try:
-            self.w = whois.whois(urlparse(self.url).netloc)            
+            self.w = whois.whois(self.hostname)            
         except Exception:
             self.w = None
+
+        # domain creation date
+        self.creation_date = self.get_creation_date()
+        # domain expiration date
+        self.expiration_date = self.get_expiration_date()
+        
+        # Age of domain
+        self.domain_age = self.get_domainage()
+        # Registration length of domain
+        self.domain_end = self.get_domainend()
+             
+        
+       #------------- Data Dictionary---------------------------------
+        self.features = { 
+            'domainlength' : self.getdomainlength() , 
+            'www' : self.contains_www(),                       
+            'subdomain' : self.has_subdomain(), # 3
+            'https' : self.httpSecure() , # 4
+            'http' : self.http() , # 5
+            'short_url' : self.short_url(), # 6
+            'ip' : self.having_ip_address() , # 7
+            'at_count' : self.count_at_symbols(), # 8
+            'dash_count' : self.count_dash_symbols() , # 9
+            'equal_count' : self.count_equal_symbols(), # 10
+            'dot_count' : self.count_dot_symbols(), # 11
+            'underscore_count' : self.count_underscore_symbols(), # 12
+            'slash_count' : self.count_slash_symbols(), # 13
+            'digit_count' : self.digit_count(), # 14
+            'log_contain' : self.contains_log(), # 15
+            'pay_contain' : self.contains_pay(), # 16
+            'web_contain' : self.contains_web(), #17
+            'cmd_contain' : self.contains_cmd(), # 18
+            'account_contain' : self.contains_account(), # 19
+            'pc_emptylink' : self.calpc_emptylinks(), # 20
+            'pc_extlink' : self.calpc_extlinks(), # 21
+            'pc_requrl'  : self.calpc_requrl(), # 22
+            'zerolink' : self.calpc_emptylinks(), # 23
+            'ext_favicon' : self.has_external_favicon() , # 24
+            'submit_to_email' : self.submit2Email(), # 25
+            'sfh' :  self.sfh(), # 26
+            'redirection' : self.redirection() , # 27
+            'domainage' : self.domainAge() if self.w else -1, #28
+            'domainend' : self.domainEnd() if self.w else -1
+        }
+        self.extra_info = {
+            # extra url info
+            'hostname' : self.hostname,
+            'domain' : self.domain,
+            'subdomains' : json.dumps(self.subdomains),
+            'scheme' : self.scheme,
+            'shortten_url' : self.shortten_url,
+            'ip_in_url' : self.ip_in_url,                        
+            'len_empty_links' : self.len_empty_links,
+            'external_links' : None if self.len_external_links == 0 else json.dumps(self.external_links),
+            'len_external_links' : self.len_external_links,
+            'external_img_requrl' : None if self.len_external_img_requrl == 0 else json.dumps(self.external_img_requrl),
+            'external_audio_requrl' : None if self.len_external_audio_requrl == 0 else json.dumps(self.external_audio_requrl),
+            'external_embed_requrl': None if self.len_external_embed_requrl == 0 else json.dumps(self.external_embed_requrl),
+            'external_iframe_requrl' : None if self.len_external_iframe_requrl == 0 else json.dumps(self.external_iframe_requrl),
+            'len_external_img_requrl' : self.len_external_img_requrl,
+            'len_external_audio_requrl' : self.len_external_audio_requrl,
+            'len_external_embed_requrl': self.len_external_embed_requrl,
+            'len_external_iframe_requrl' : self.len_external_iframe_requrl,
+             # extra domain infomation
+            'creation_date' : self.creation_date if self.w else None,
+            'expiration_date' : self.expiration_date if self.w else None,            
+            'domainage' : self.domain_age if self.w else None,
+            'domainend' : self.domain_end if self.w else None,
+            'city' : None if self.w is None or self.w.city == "REDACTED FOR PRIVACY" else self.w.city ,
+            'state' : None if self.w is None or self.w.state == "REDACTED FOR PRIVACY" else self.w.state,
+            'country' : None if self.w is None or self.w.country == "REDACTED FOR PRIVACY" else self.w.country
+         }
    
-                    
-        #-----------------------Features Append--------------------------------------------------------------
-        # Address bar based features (10)
-        self.features.append(self.getdomainlength())  # 1
-        self.features.append(self.contains_www())  # 2
-        self.features.append(self.has_subdomain())  # 3
-        self.features.append(self.httpSecure())  # 4
-        self.features.append(self.http())  # 5
-        self.features.append(self.short_url())  # 6
-        self.features.append(self.having_ip_address())  # 7
-
-        self.features.append(self.count_at_symbols())  # 8
-        self.features.append(self.count_dash_symbols())  # 9
-        self.features.append(self.count_equal_symbols())  # 10
-        self.features.append(self.count_dot_symbols())  # 11
-        self.features.append(self.count_underscore_symbols())  # 12
-        self.features.append(self.count_slash_symbols())  # 13
-        self.features.append(self.digit_count())  # 14
-
-        self.features.append(self.contains_log())  # 15
-        self.features.append(self.contains_pay())  # 16
-        self.features.append(self.contains_web())  # 17
-        self.features.append(self.contains_cmd())  # 18
-        self.features.append(self.contains_account())  # 19
-
-        # HTML and Javascript based features
-        self.features.append(self.calpc_emptylinks())  # 20
-        self.features.append(self.calpc_extlinks())  # 21
-        self.features.append(self.calpc_requrl())  # 22
-        self.features.append(self.haszerolinksinbody())  # 23
-        self.features.append(self.has_external_favicon())  # 24
-        self.features.append(self.submit2Email())  # 25
-        self.features.append(self.sfh())  # 26
-        self.features.append(self.redirection())  # 27
-
-        # Domain based features
-        self.features.append(self.domainAge() if self.w else -1)  # 28
-        self.features.append(self.domainEnd() if self.w else -1)  # 29
-
-
-    def getFeaturesList(self):
+    def get_model_features(self):
         return self.features
     
+    def get_extra_info(self):
+        return self.extra_info
       
     # 0.UsingIp
     def getfinalurl(self, urlt):
@@ -93,18 +173,181 @@ class URLFeatures:
         except Exception:
             return final_url, soup, urlhistory
 
+    #------------------------------------------------------ Extra Information------------------------------------------------------------    
+    def get_hostname(self):
+        hostname = urlparse(self.url).hostname
+        return hostname
+    
+    def get_domain(self):
+        page_domain = tldextract.extract(self.url).domain
+        return page_domain
+    
+  
+    def get_subdomain(self):
+        ext = tldextract.extract(self.url)
+        subd = ext.subdomain
+        subd_parts = subd.split('.')
+        return subd_parts
+    
+    def get_scheme(self):
+        htp = urlparse(self.url).scheme
+        return htp
+    
+    def get_shorturl(self):
+        pattern = 'bit\.ly|goo\.gl|shorte\.st|go2l\.ink|x\.co|ow\.ly|t\.co|tinyurl|tr\.im|is\.gd|cli\.gs|' \
+            'yfrog\.com|migre\.me|ff\.im|tiny\.cc|url4\.eu|twit\.ac|su\.pr|twurl\.nl|snipurl\.com|' \
+            'short\.to|BudURL\.com|ping\.fm|post\.ly|Just\.as|bkite\.com|snipr\.com|fic\.kr|loopt\.us|' \
+            'doiop\.com|short\.ie|kl\.am|wp\.me|rubyurl\.com|om\.ly|to\.ly|bit\.do|t\.co|lnkd\.in|' \
+            'db\.tt|qr\.ae|adf\.ly|goo\.gl|bitly\.com|cur\.lv|tinyurl\.com|ow\.ly|bit\.ly|ity\.im|' \
+            'q\.gs|is\.gd|po\.st|bc\.vc|twitthis\.com|u\.to|j\.mp|buzurl\.com|cutt\.us|u\.bb|yourls\.org|' \
+            'x\.co|prettylinkpro\.com|scrnch\.me|filoops\.info|vzturl\.com|qr\.net|1url\.com|tweez\.me|v\.gd|' \
+            'tr\.im|link\.zip\.net'
+        match = re.search(pattern, self.url)
+        return match
+    
+    def get_ip_in_url(self):
+        match = re.search(
+            '(([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.'
+            '([01]?\d\d?|2[0-4]\d|25[0-5])\/)|'  # IPv4
+            # IPv4 in hexadecimal
+            '((0x[0-9a-fA-F]{1,2})\.(0x[0-9a-fA-F]{1,2})\.(0x[0-9a-fA-F]{1,2})\.(0x[0-9a-fA-F]{1,2})\/)'
+            '(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}', self.url)  # Ipv6
+        return match
+    
+    def get_all_links(self):
+        all_links = self.soup.find_all('a', href=True)
+        return all_links
+    
+    def count_empty_links(self):
+        empty_links_count = 0
+        all_links = self.all_links        
+        for link in all_links:
+            if '#' == link['href'][0] or link['href'] == '' or "javascript:void(0)" in link['href'] or "./" == link['href']:
+                empty_links_count += 1  
+    
+    def get_external_links(self):
+        external_link_arr = []          
+        page_domain = self.domain
+        all_links = self.all_links  
+        for link in all_links:
+            if link['href'].split(":")[0] in ['http', 'https'] and not page_domain in link['href']:
+                external_link_arr.append(link['href']) 
+        return external_link_arr
+    
+    def get_img_requrl(self):
+        img_requrls = self.soup.find_all('img', src=True)
+        return img_requrls
+    
+    def get_audio_requrl(self):
+        audio_requrls= self.soup.find_all('audio', src=True)
+        return audio_requrls
+    
+    def get_embed_img_requrl(self):
+        embed_requrls = self.soup.find_all('embed', src=True)
+        return embed_requrls 
+    
+    def get_iframe_requrl(self):
+        iframe_requrls = self.soup.find_all('iframe', src=True)
+        return iframe_requrls
+        
+    def get_external_img_requrl(self):
+        external_img_arr = []
+        page_domain = self.domain
+        for img in self.img_requrl:
+            if img['src'].split(":")[0] in ['http', 'https'] and not page_domain in img['src']:
+                external_img_arr.append(img['src'])
+        return external_img_arr
+
+    def get_external_audio_requrl(self):
+        external_audio_arr = []
+        page_domain = self.domain
+        for audio in self.audio_requrl:
+            if audio['src'].split(":")[0] in ['http', 'https'] and not page_domain in audio['src']:
+                external_audio_arr.append(audio['src'])
+        return external_audio_arr
+    
+    def get_external_embed_requrl(self):
+        external_embed_arr = []
+        page_domain = self.domain        
+        for embed in self.embed_requrl:
+            if embed['src'].split(":")[0] in ['http', 'https'] and not page_domain in embed['src']:
+                external_embed_arr.append(embed['src'])
+        return external_embed_arr
+    
+    def get_external_iframe_requrl(self):
+        external_iframe_arr = []
+        page_domain = self.domain
+        for iframe in self.iframe_requrl:
+            if iframe['src'].split(":")[0] in ['http', 'https'] and not page_domain in iframe['src']:
+                external_iframe_arr.append(iframe['src'])
+        return external_iframe_arr
+
+    def get_external_favicon(self):
+        favicon_link_arr = []
+        page_domain = self.domain
+        for favicon_link in self.soup.find_all('link', rel=['icon', 'shortcut icon']):
+            if favicon_link['href'].split(":")[0] in ['http', 'https'] and not page_domain in favicon_link['href']:
+                favicon_link_arr.append(favicon_link['href'])                
+        return favicon_link_arr
+    
+    def get_creation_date(self):
+        creation_date = self.w.creation_date
+        if creation_date is None:
+            creation_date = None
+        elif type(creation_date) is list:
+            creation_date = self.w.creation_date[0]
+        elif type(creation_date) is str:
+            creation_date = -1
+        return creation_date       
+
+    def get_expiration_date(self):
+        expiration_date = self.w.expiration_date
+        if expiration_date is None:
+            expiration_date =  None
+        elif type(expiration_date) is list:
+            expiration_date = self.w.expiration_date[0]
+        elif type(expiration_date) is str:
+            expiration_date = -1
+        return expiration_date
+        
+    def get_domainage(self):
+        creation_date = self.creation_date
+        expiration_date = self.expiration_date
+        ageofdomain = 0
+        if (expiration_date is None) or (creation_date is None):
+            return 1
+        elif creation_date == -1 or expiration_date == -1:
+            return -1
+        else:
+            ageofdomain = abs((expiration_date - creation_date).days)      
+        return ageofdomain
+
+    def get_domainend(self):
+        expiration_date = self.expiration_date
+        today = time.strftime('%Y-%m-%d')
+        today = datetime.strptime(today, '%Y-%m-%d')
+        registration_length = 0
+        if expiration_date is None:
+            return 1 
+        elif expiration_date == -1:
+            return -1 
+        else:
+            registration_length = abs((expiration_date - today).days)
+        return registration_length
+    
+
+    #-----------------------------------------------------------------Model Features---------------------------------------------------------------
     # 1 Get hostname length
     def getdomainlength(self):
-        hostname = urlparse(self.url).hostname
+        hostname = self.hostname
         if hostname:
-            self.extra_features['hostname'] = hostname # 1 hostname
             domain_length = len(hostname)
             return domain_length
         return -1
 
     # 2 Whether it contains www
     def contains_www(self):
-        hostname = urlparse(self.url).hostname
+        hostname = self.hostname
         if hostname:
             if "www" in hostname[0:3]:
                 return 0
@@ -114,11 +357,8 @@ class URLFeatures:
 
     # 3 has subdomain or not
     def has_subdomain(self):
-        ext = tldextract.extract(self.url)
-        subd = ext.subdomain
-        subd_parts = subd.split('.')
+        subd_parts = self.subdomains
         if subd_parts:
-            self.extra_features['subdomain'] = subd_parts # 2 subdomain
             if len(subd_parts) > 1:
                 return 1
             else:
@@ -127,10 +367,9 @@ class URLFeatures:
 
     # 4 checks https
     def httpSecure(self):
-        htp = urlparse(self.url).scheme
+        htp = self.scheme
         match = str(htp)
         if htp:
-            self.extra_features['protocol'] = match # 3 scheme/protocol
             if match == 'https':
                 return 0
             else:
@@ -139,7 +378,7 @@ class URLFeatures:
 
     # 5 check http
     def http(self):
-        htp = urlparse(self.url).scheme
+        htp = self.scheme
         match = str(htp)
         if htp:
             if match == 'https' or match == 'http':
@@ -150,31 +389,16 @@ class URLFeatures:
 
     # 6 short url
     def short_url(self):
-        pattern = 'bit\.ly|goo\.gl|shorte\.st|go2l\.ink|x\.co|ow\.ly|t\.co|tinyurl|tr\.im|is\.gd|cli\.gs|' \
-            'yfrog\.com|migre\.me|ff\.im|tiny\.cc|url4\.eu|twit\.ac|su\.pr|twurl\.nl|snipurl\.com|' \
-            'short\.to|BudURL\.com|ping\.fm|post\.ly|Just\.as|bkite\.com|snipr\.com|fic\.kr|loopt\.us|' \
-            'doiop\.com|short\.ie|kl\.am|wp\.me|rubyurl\.com|om\.ly|to\.ly|bit\.do|t\.co|lnkd\.in|' \
-            'db\.tt|qr\.ae|adf\.ly|goo\.gl|bitly\.com|cur\.lv|tinyurl\.com|ow\.ly|bit\.ly|ity\.im|' \
-            'q\.gs|is\.gd|po\.st|bc\.vc|twitthis\.com|u\.to|j\.mp|buzurl\.com|cutt\.us|u\.bb|yourls\.org|' \
-            'x\.co|prettylinkpro\.com|scrnch\.me|filoops\.info|vzturl\.com|qr\.net|1url\.com|tweez\.me|v\.gd|' \
-            'tr\.im|link\.zip\.net'
-        match = re.search(pattern, self.url)
+        match = self.shortten_url
         if match:
-            self.extra_features['short_url'] = match # 4 short url
             return 1
         else:
             return 0
 
     # 7 Use the IP Address
     def having_ip_address(self):
-        match = re.search(
-            '(([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.'
-            '([01]?\d\d?|2[0-4]\d|25[0-5])\/)|'  # IPv4
-            # IPv4 in hexadecimal
-            '((0x[0-9a-fA-F]{1,2})\.(0x[0-9a-fA-F]{1,2})\.(0x[0-9a-fA-F]{1,2})\.(0x[0-9a-fA-F]{1,2})\/)'
-            '(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}', self.url)  # Ipv6
+        match = self.get_ip_in_url()
         if match:
-            self.extra_features['ip_in_url'] = match #  5 ip address in url
             return 1
         else:
             return 0
@@ -193,7 +417,7 @@ class URLFeatures:
 
     # 11
     def count_dot_symbols(self):
-        hostname = urlparse(self.url).hostname
+        hostname = self.hostname
         if hostname:
             return hostname.count(".")
         return -1
@@ -208,7 +432,7 @@ class URLFeatures:
 
     # 14 count digit : tested
     def digit_count(self):
-        hostname = urlparse(self.url).hostname
+        hostname = self.hostname
         digits = 0
         if hostname:
             for i in hostname:
@@ -223,26 +447,26 @@ class URLFeatures:
         if 'log' in self.url.lower():
             return 1
         return 0
+    
     # 16
-
     def contains_pay(self):
         if 'pay' in self.url.lower():
             return 1
         return 0
+    
     # 17
-
     def contains_web(self):
         if 'web' in self.url.lower():
             return 1
         return 0
+    
     # 18
-
     def contains_cmd(self):
         if 'cmd' in self.url.lower():
             return 1
         return 0
+    
     # 19
-
     def contains_account(self):
         if 'account' in self.url.lower():
             return 1
@@ -250,15 +474,9 @@ class URLFeatures:
 
     # 20 Percentage of links that do not lead to another page
     def calpc_emptylinks(self):
-        try:
-          
-            all_links = self.soup.find_all('a', href=True)
-            total_links_count = len(all_links)
-            empty_links_count = 0
-            for link in all_links:
-                if '#' == link['href'][0] or link['href'] == '' or "javascript:void(0)" in link['href'] or "./" == link['href']:
-                    empty_links_count += 1          
-                    
+        try:       
+            total_links_count = self.len_all_links                   
+            empty_links_count = self.len_empty_links         
             if total_links_count > 0:
                 percentage_empty_links = (
                     empty_links_count / total_links_count) * 100
@@ -271,18 +489,9 @@ class URLFeatures:
     # 21 Percentage of links that lead to an external page.
     def calpc_extlinks(self):
         try:
-            external_link_arr = []
-            all_links = self.soup.find_all('a', href=True)
-            total_links_count = len(all_links)
-            page_domain = tldextract.extract(self.url).domain
-            self.extra_features['domain'] = page_domain   # 7 domain name
-            external_links_count = 0
-            for link in all_links:
-                if link['href'].split(":")[0] in ['http', 'https'] and not page_domain in link['href']:
-                    external_link_arr.append(link['href']) 
-                    external_links_count += 1
-            self.extra_features['ext_link'] = external_link_arr # 8 external links in arr
-                               
+            total_links_count = self.len_all_links                  
+            external_links_count = self.len_external_links
+                                     
             if total_links_count > 0:
                 percentage_external_links = (
                     external_links_count / total_links_count) * 100 
@@ -294,44 +503,13 @@ class URLFeatures:
             return -1
 
     # 22 Percentage of external resources URL /Request URL ,examines whether the external objects contained within a webpage
-    def calpc_requrl(self):
-        i = 0
-        success = 0
-        requrl = {}
-        ext_img = []
-        ext_audio = []
-        ext_embed = []
-        ext_iframe = []
+    def calpc_requrl(self):     
         try:
-            page_domain = tldextract.extract(self.url).domain
-            for img in self.soup.find_all('img', src=True):
-                if img['src'].split(":")[0] in ['http', 'https'] and not page_domain in img['src']:
-                    success += 1
-                    ext_img.append(img['src'])
-                i += 1
-            for audio in self.soup.find_all('audio', src=True):
-                if audio['src'].split(":")[0] in ['http', 'https'] and not page_domain in audio['src']:
-                    success += 1
-                    ext_audio.append(audio['src'])
-                i += 1
-            for embed in self.soup.find_all('embed', src=True):
-                if embed['src'].split(":")[0] in ['http', 'https'] and not page_domain in embed['src']:
-                    success += 1
-                    ext_embed.append(embed['src'])
-                i += 1
-            for iframe in self.soup.find_all('iframe', src=True):
-                if iframe['src'].split(":")[0] in ['http', 'https'] and not page_domain in iframe['src']:
-                    success += 1
-                    ext_iframe.append(iframe['src'])
-                i += 1
+            total_requrl_count = self.len_all_requrl
+            external_requrl_count = self.len_all_external_requrl
 
-            requrl['ext_img'] = ext_img
-            requrl['ext_audio'] = ext_audio
-            requrl['ext_embed'] = ext_embed
-            requrl['ext_iframe'] = ext_iframe
-            self.extra_features['requrl'] = requrl   # 9 requesy url 
-            if i > 0:
-                percentage = (success/float(i) * 100)
+            if total_requrl_count > 0:
+                percentage = (external_requrl_count/float(total_requrl_count) * 100)
             else:
                 percentage = 0
             return percentage
@@ -351,16 +529,7 @@ class URLFeatures:
     # 24 external favicon
     def has_external_favicon(self):
         try:
-            favicon_link_arr = []
-            favicon_links = self.soup.find_all(
-                'link', rel=['icon', 'shortcut icon'])
-            page_domain = tldextract.extract(self.url).domain
-            external_favicon_count = 0
-            for favicon_link in favicon_links:
-                if favicon_link['href'].split(":")[0] in ['http', 'https'] and not page_domain in favicon_link['href']:
-                    favicon_link_arr.append(favicon_link['href'])
-                    external_favicon_count += 1
-            self.extra_features['ext_favicon'] = favicon_link_arr  # 10 external favicon
+            external_favicon_count = self.len_external_favicon        
             if external_favicon_count == 0:
                 return 0
             else:
@@ -405,39 +574,22 @@ class URLFeatures:
 
     # 28 Domain Age : Survival time of domain: The difference between termination time and creation time (Domain_Age)
     def domainAge(self):
-        creation_date = self.w.creation_date
-        expiration_date = self.w.expiration_date
-        ageofdomain = 0
-        if (expiration_date is None) or (creation_date is None):
+        ageofdomain = self.domain_age
+        if ageofdomain is None:
             return 1
-        elif type(expiration_date) is list:
-            expiration_date = self.w.expiration_date[0]
-        elif type(creation_date) is list:
-            creation_date = self.w.creation_date[0]
-        elif type(creation_date) is str or type(expiration_date) is str:
+        elif ageofdomain == -1:
             return -1
         else:
-            ageofdomain = abs((expiration_date - creation_date).days)      
-            self.extra_features['creation_date'] = creation_date.strftime("%Y-%m-%d %H:%M:%S")
-            self.extra_features['expiration_date'] = expiration_date.strftime("%Y-%m-%d %H:%M:%S")
-            self.extra_features['domainage'] = ageofdomain
-
-
-        return 1 if (ageofdomain/30) < 6 else 0
+            return 1 if (ageofdomain/30) < 6 else 0
 
     # 29 Domain Registration length
     def domainEnd(self):
-        expiration_date = self.w.expiration_date
         today = time.strftime('%Y-%m-%d')
         today = datetime.strptime(today, '%Y-%m-%d')
-        registration_length = 0
-        if expiration_date is None:
+        registration_length = self.domain_end
+        if registration_length is None:
             return 1
-        elif type(expiration_date) is list:
-            expiration_date = self.w.expiration_date[0]
-        elif type(expiration_date) is str:
+        elif registration_length == -1:
             return -1
         else:
-            registration_length = abs((expiration_date - today).days)
-            self.extra_features['registration_length'] = registration_length
-        return 1 if registration_length / 365 <= 1 else 0
+            return 1 if registration_length / 365 <= 1 else 0

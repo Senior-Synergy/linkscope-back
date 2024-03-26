@@ -39,12 +39,11 @@ def get_all_result_by_submission_id(submission_id: int, session: Session):
     try:
         url_result = session.query(models.Result).join(
             models.Url, models.Url.url_id == models.Url.url_id).filter(
-            models.Result.submission_id == submission_id)
-        #print(url_result)
+            models.Result.submission_id == submission_id).all()
     except Exception as e:
         print(f'error is {str(e)}')
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Failed to access 'scan_id: {submission_id}' in the database")
+                            detail=f"Failed to access 'submission_id: {submission_id}' in the database")
     return url_result
 
 
@@ -53,6 +52,7 @@ def get_url_data_by_url_id(url_id: int, session: Session):
     try:
         scan_result = session.query(models.Url).filter(
             models.Url.url_id == url_id).first()
+        url_id = scan_result.url_id
     except Exception as e:
         print(f'Error to get url result by url_id is {str(e)}')
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
