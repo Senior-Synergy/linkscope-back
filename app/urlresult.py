@@ -25,7 +25,7 @@ class URLresult:
         self.extra_info = url_obj.get_extra_info()
         # model features dict
         self.model_features = url_obj.get_model_features()
-        self.model_features_arr = np.array(list(self.model_features.values())).reshape(1, 29)        
+        self.model_features_arr = np.array(list(self.model_features.values())[:29]).reshape(1, 29)        
         self.features_df = pd.DataFrame(self.model_features_arr, columns=feature_names)
  
     def get_final_url(self):

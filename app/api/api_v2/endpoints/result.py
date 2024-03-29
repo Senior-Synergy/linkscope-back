@@ -22,6 +22,7 @@ def get_all(submission_id :int, db_session: Session = Depends(get_db)):
             print(result)
         '''
     except Exception as e:
+        url_results = [] 
         print(f'Error is {str(e)}')
     return url_results
     

@@ -14,45 +14,18 @@ class Submission(Base):
 
     result = relationship("Result", back_populates="submission")
 
-class Result(Base):
-    __tablename__ = 'result'
-
-    result_id = Column(Integer, primary_key=True, index=True)
-    submission_id = Column(Integer, ForeignKey('submission.submission_id'))
-    url_id = Column(Integer, ForeignKey('url.url_id'))
-    feature_id = Column(Integer, ForeignKey('feature.feature_id'))
-    submitted_url = Column(String(2000))
-    phish_prob = Column(Float)
-    is_phishing = Column(Boolean)
-    datetime_created = Column(DateTime(timezone=True), server_default=func.now())
-
-    submission = relationship("Submission", back_populates="result")
-    url = relationship("Url", back_populates="result")
-    feature = relationship("Feature", back_populates="result")
 
 
 class Url(Base):
     __tablename__ = 'url'
     url_id = Column(Integer, primary_key=True, index=True)
     final_url = Column(String(2000))
+
     hostname = Column(String(200))
     domain = Column(String(200))
     subdomains = Column(String(200))
     scheme = Column(String(200))
-    shortten_url = Column(String(200))
-    ip_in_url  = Column(String(200))                        
-    len_empty_links = Column(Integer)
-    external_links  = Column(Text) 
-    len_external_links  = Column(Integer)
-    external_img_requrl = Column(Text)  
-    external_audio_requrl = Column(Text)  
-    external_embed_requrl = Column(Text) 
-    external_iframe_requrl = Column(Text) 
-    len_external_img_requrl = Column(Integer)
-    len_external_audio_requrl = Column(Integer)
-    len_external_embed_requrl = Column(Integer)
-    len_external_iframe_requrl = Column(Integer) 
-        # extra domain infomation
+      # extra domain infomation
     creation_date = Column(DateTime(timezone=True))
     expiration_date = Column(DateTime(timezone=True))            
     domainage = Column(Integer)
@@ -96,6 +69,36 @@ class Feature(Base):
     redirection = Column(Integer) # 27
     domainage = Column(Integer) # 28
     domainend = Column(Integer) # 29 
+
+    shortten_url = Column(String(200))
+    ip_in_url  = Column(String(200))                        
+    len_empty_links = Column(Integer)
+    external_links  = Column(Text) 
+    len_external_links  = Column(Integer)
+    external_img_requrl = Column(Text)  
+    external_audio_requrl = Column(Text)  
+    external_embed_requrl = Column(Text) 
+    external_iframe_requrl = Column(Text) 
+    len_external_img_requrl = Column(Integer)
+    len_external_audio_requrl = Column(Integer)
+    len_external_embed_requrl = Column(Integer)
+    len_external_iframe_requrl = Column(Integer) 
     
     result = relationship("Result", back_populates="feature")
 
+
+class Result(Base):
+    __tablename__ = 'result'
+
+    result_id = Column(Integer, primary_key=True, index=True)
+    submission_id = Column(Integer, ForeignKey('submission.submission_id'))
+    url_id = Column(Integer, ForeignKey('url.url_id'))
+    feature_id = Column(Integer, ForeignKey('feature.feature_id'))
+    submitted_url = Column(String(2000))
+    phish_prob = Column(Float)
+    is_phishing = Column(Boolean)
+    datetime_created = Column(DateTime(timezone=True), server_default=func.now())
+
+    submission = relationship("Submission", back_populates="result")
+    url = relationship("Url", back_populates="result")
+    feature = relationship("Feature", back_populates="result")

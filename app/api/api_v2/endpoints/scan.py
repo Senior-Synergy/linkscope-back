@@ -25,43 +25,37 @@ def scan_all_ver2(request: schemas.Url_submission_list, db_session: Session = De
     submission_data = models.Submission()
     model = load_model("data/model_compressed.gzip")
 
-    for i,url in enumerate(urls):
+    for url in urls:
         # Get URL result_obj
         result_obj = URLresult(url, model)
-
+        final_url= result_obj.get_final_url()
         model_features = result_obj.model_features
-        extra_url_info = result_obj.extra_info
-        
-        # append to list
-        # print(f'Inserting {url} to db')
-        url_objects.append(models.Url(final_url= result_obj.get_final_url(),
-                                    hostname = extra_url_info.get('hostname'),        
-                                    domain = extra_url_info.get('domain'),
-                                    subdomains = extra_url_info.get('subdomains'),
-                                    scheme = extra_url_info.get('scheme'),
-                                    shortten_url = extra_url_info.get('shortten_url'),
-                                    ip_in_url  = extra_url_info.get('ip_in_url'),              
-                                    len_empty_links = extra_url_info.get('len_empty_links'),
-                                    external_links  = extra_url_info.get('external_links'),
-                                    len_external_links  = extra_url_info.get('len_external_links'),
-                                    external_img_requrl = extra_url_info.get('external_img_requrl'),  
-                                    external_audio_requrl = extra_url_info.get('external_audio_requrl'),  
-                                    external_embed_requrl = extra_url_info.get('external_embed_requrl'), 
-                                    external_iframe_requrl = extra_url_info.get('external_iframe_requrl'), 
-                                    len_external_img_requrl = extra_url_info.get('len_external_img_requrl'),
-                                    len_external_audio_requrl = extra_url_info.get('len_external_audio_requrl'),
-                                    len_external_embed_requrl = extra_url_info.get('len_external_embed_requrl'),
-                                    len_external_iframe_requrl = extra_url_info.get('len_external_iframe_requrl'), 
-                                        # extra domain infomation
-                                    creation_date = extra_url_info.get('creation_date'),
-                                    expiration_date = extra_url_info.get('expiration_date'),            
-                                    domainage = extra_url_info.get('domainage'),
-                                    domainend = extra_url_info.get('domainend'),
-                                    city = extra_url_info.get('city'), 
-                                    state = extra_url_info.get('state'),
-                                    country =extra_url_info.get('country')))
-        feature_objects.append(models.Feature(domainlength = model_features.get('domainlength'), #1
-                                www = model_features.get('domainlength'), # 2
+        extra_url_info = result_obj.extra_info        
+          
+        existing_scan_result = url_crud.search_url(final_url, db_session)
+        if existing_scan_result:
+            # update check needs to be implemented here
+            # if element different --> update ; however the url_id still the same so same url_data
+            url_data = existing_scan_result         
+        else:
+            url_data = models.Url(final_url= final_url,
+                            hostname = extra_url_info.get('hostname'),        
+                            domain = extra_url_info.get('domain'),
+                            subdomains = extra_url_info.get('subdomains'),
+                            scheme = extra_url_info.get('scheme'),
+                                # extra domain infomation
+                            creation_date = extra_url_info.get('creation_date'),
+                            expiration_date = extra_url_info.get('expiration_date'),            
+                            domainage = extra_url_info.get('domainage'),
+                            domainend = extra_url_info.get('domainend'),
+                            city = extra_url_info.get('city'), 
+                            state = extra_url_info.get('state'),
+                            country =extra_url_info.get('country'))
+            url_objects.append(url_data)
+
+
+        feature_data = models.Feature(domainlength = model_features.get('domainlength'), #1
+                                www = model_features.get('www'), # 2
                                 subdomain = model_features.get('subdomain') , # 3
                                 https = model_features.get('https') , # 4
                                 http = model_features.get('http') , # 5
@@ -88,14 +82,32 @@ def scan_all_ver2(request: schemas.Url_submission_list, db_session: Session = De
                                 sfh = model_features.get('sfh') , # 26
                                 redirection = model_features.get('redirection'), # 27
                                 domainage = model_features.get('domainage') , # 28
-                                domainend = model_features.get('domainend') )) # 29)
-        result_objects.append(models.Result(submitted_url = url,
-                                phish_prob= result_obj.get_phish_prob(),
-                                is_phishing= result_obj.get_isPhish(),
-                                submission = submission_data,
-                                url = url_objects[i],
-                                feature = feature_objects[i]))
-         
+                                domainend = model_features.get('domainend') , #29
+
+                                shortten_url = model_features.get('shortten_url'),
+                                ip_in_url  = model_features.get('ip_in_url'),              
+                                len_empty_links = model_features.get('len_empty_links'),
+                                external_links  = model_features.get('external_links'),
+                                len_external_links  = model_features.get('len_external_links'),
+                                external_img_requrl = model_features.get('external_img_requrl'),  
+                                external_audio_requrl = model_features.get('external_audio_requrl'),  
+                                external_embed_requrl = model_features.get('external_embed_requrl'), 
+                                external_iframe_requrl = model_features.get('external_iframe_requrl'), 
+                                len_external_img_requrl = model_features.get('len_external_img_requrl'),
+                                len_external_audio_requrl = model_features.get('len_external_audio_requrl'),
+                                len_external_embed_requrl = model_features.get('len_external_embed_requrl'),
+                                len_external_iframe_requrl = model_features.get('len_external_iframe_requrl')                                                       
+                                )   
+        result_data = models.Result(submitted_url = url,
+                            phish_prob= result_obj.get_phish_prob(),
+                            is_phishing= result_obj.get_isPhish(),
+                            submission = submission_data,
+                            url = url_data,
+                            feature = feature_data)
+        
+        feature_objects.append(feature_data)
+        result_objects.append(result_data)           
+       
     submission_id = url_crud.create_all_result(submission_data, url_objects, feature_objects, result_objects, db_session)   
     
     return submission_id

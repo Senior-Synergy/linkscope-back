@@ -110,20 +110,14 @@ class URLFeatures:
             'pc_emptylink' : self.calpc_emptylinks(), # 20
             'pc_extlink' : self.calpc_extlinks(), # 21
             'pc_requrl'  : self.calpc_requrl(), # 22
-            'zerolink' : self.calpc_emptylinks(), # 23
+            'zerolink' : self.haszerolinksinbody(), # 23
             'ext_favicon' : self.has_external_favicon() , # 24
             'submit_to_email' : self.submit2Email(), # 25
             'sfh' :  self.sfh(), # 26
             'redirection' : self.redirection() , # 27
             'domainage' : self.domainAge() if self.w else -1, #28
-            'domainend' : self.domainEnd() if self.w else -1
-        }
-        self.extra_info = {
+            'domainend' : self.domainEnd() if self.w else -1,
             # extra url info
-            'hostname' : self.hostname,
-            'domain' : self.domain,
-            'subdomains' : json.dumps(self.subdomains),
-            'scheme' : self.scheme,
             'shortten_url' : self.shortten_url,
             'ip_in_url' : self.ip_in_url,                        
             'len_empty_links' : self.len_empty_links,
@@ -137,14 +131,21 @@ class URLFeatures:
             'len_external_audio_requrl' : self.len_external_audio_requrl,
             'len_external_embed_requrl': self.len_external_embed_requrl,
             'len_external_iframe_requrl' : self.len_external_iframe_requrl,
+        }
+        self.extra_info = {
+            # extra url info
+            'hostname' : self.hostname,
+            'domain' : self.domain,
+            'subdomains' : None if self.has_subdomain() == 0 else json.dumps(self.subdomains),
+            'scheme' : self.scheme,          
              # extra domain infomation
             'creation_date' : self.creation_date if self.w else None,
             'expiration_date' : self.expiration_date if self.w else None,            
             'domainage' : self.domain_age if self.w else None,
             'domainend' : self.domain_end if self.w else None,
-            'city' : None if self.w is None or self.w.city == "REDACTED FOR PRIVACY" else self.w.city ,
-            'state' : None if self.w is None or self.w.state == "REDACTED FOR PRIVACY" else self.w.state,
-            'country' : None if self.w is None or self.w.country == "REDACTED FOR PRIVACY" else self.w.country
+            'city' : None if self.w is None or self.w.city is None or any(city in ['REDACTED FOR PRIVACY', 'DATA REDACTED'] for city in self.w.city) else self.w.city ,
+            'state' : None if self.w is None or self.w.state is None or any(state in ['REDACTED FOR PRIVACY', 'DATA REDACTED'] for state in self.w.state) else self.w.state,
+            'country' : None if self.w is None or self.w.country is None or  any(country in ['REDACTED FOR PRIVACY', 'DATA REDACTED'] for country in self.w.country) else self.w.country
          }
    
     def get_model_features(self):
@@ -223,8 +224,10 @@ class URLFeatures:
         all_links = self.all_links        
         for link in all_links:
             if '#' == link['href'][0] or link['href'] == '' or "javascript:void(0)" in link['href'] or "./" == link['href']:
-                empty_links_count += 1  
-    
+                empty_links_count += 1
+        return empty_links_count 
+
+            
     def get_external_links(self):
         external_link_arr = []          
         page_domain = self.domain
@@ -483,7 +486,8 @@ class URLFeatures:
             else:
                 percentage_empty_links = 0
             return percentage_empty_links
-        except:
+        except Exception as e:
+            print((f'Error of empty links: {str(e)}'))
             return -1
 
     # 21 Percentage of links that lead to an external page.
@@ -559,7 +563,8 @@ class URLFeatures:
                 else:
                     return 0
             return 0
-        except Exception:
+        except Exception as e:
+            
             return -1
 
     # 27 redirection

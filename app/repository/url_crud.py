@@ -21,7 +21,7 @@ def create_all_result(submission_data : models.Submission, url_objects : List[mo
     return submission_data.submission_id
 
 
-#-----------------------------------------READ--------------------------------------------------
+#-----------------------------------------READ-----------------------------------------------------------
 
 def search_url(final_url: str, session: Session):
     try:
@@ -58,12 +58,4 @@ def get_url_data_by_url_id(url_id: int, session: Session):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Failed to access 'scan_id: {url_id}' in the database")
     return scan_result
-
-
-'''
-# How to join Syntax
-   url_result = session.query(models.Url).join(
-            models.Result, models.Result.url_id == models.Url.url_id).filter(
-            models.Result.submission_id == submission_id
-            )
-'''
+#----------------------------------------- Update -----------------------------------------------------------
