@@ -32,8 +32,8 @@ class Url(Base):
     domainend = Column(Integer)
     city = Column(String(100)) 
     state = Column(String(100)) 
-    country =Column(String(100)) 
-        
+    country =Column(String(100))
+    updated_date =  Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())       
     result = relationship("Result", back_populates="url")
     #feature = relationship("Feature", uselist=False, back_populates="url")
 

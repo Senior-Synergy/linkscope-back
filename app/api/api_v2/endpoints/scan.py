@@ -13,30 +13,42 @@ get_db = database.get_db
 def read_root():
     return {"message": "Hello, From Backend's /scan!"}
 
-#------------------- Scan and Bulk Insert all data to DB (faster) ----------------------------------------
+# Scan and Bulk Insert all data to DB (faster)
 @router.post("/list", status_code=status.HTTP_200_OK)
 def scan_all_ver2(request: schemas.Url_submission_list, db_session: Session = Depends(get_db)):
-    
-    # List of Data to be inserted
-    url_objects = []
-    feature_objects = []
-    result_objects = []
-    urls = request.urls
-    submission_data = models.Submission()
+ 
+    url_to_insert, feature_to_insert, result_to_insert, url_obj_to_update = [], [], [], []
+    urls = request.urls   
     model = load_model("data/model_compressed.gzip")
+    # Create submission_data
+    submission_data = models.Submission()
 
     for url in urls:
-        # Get URL result_obj
-        result_obj = URLresult(url, model)
-        final_url= result_obj.get_final_url()
-        model_features = result_obj.model_features
-        extra_url_info = result_obj.extra_info        
-          
-        existing_scan_result = url_crud.search_url(final_url, db_session)
-        if existing_scan_result:
-            # update check needs to be implemented here
-            # if element different --> update ; however the url_id still the same so same url_data
-            url_data = existing_scan_result         
+        # Get URL scan_obj
+        scan_obj = URLresult(url, model)
+        final_url= scan_obj.get_final_url()
+        model_features = scan_obj.model_features
+        extra_url_info = scan_obj.extra_info
+
+        # Create url_data and append to list for bulk insert/update      
+        # Search if there is final_url in db, if exists => update, else => insert
+        existing_url_result = url_crud.search_url(final_url, db_session)
+        if existing_url_result:             
+            url_data = existing_url_result
+            url_obj_to_update.append({"url_id" : existing_url_result.url_id,
+                            "final_url" : final_url,
+                            "hostname" : extra_url_info.get('hostname'),        
+                            "domain" : extra_url_info.get('domain'),
+                            "subdomains" : extra_url_info.get('subdomains'),
+                            "scheme" : extra_url_info.get('scheme'),
+                                # extra domain infomation
+                            "creation_date" : extra_url_info.get('creation_date'),
+                            "expiration_date" : extra_url_info.get('expiration_date'),            
+                            "domainage" : extra_url_info.get('domainage'),
+                            "domainend" : extra_url_info.get('domainend'),
+                            "city" : extra_url_info.get('city'), 
+                            "state" : extra_url_info.get('state'),
+                            "country" :extra_url_info.get('country')})
         else:
             url_data = models.Url(final_url= final_url,
                             hostname = extra_url_info.get('hostname'),        
@@ -51,9 +63,9 @@ def scan_all_ver2(request: schemas.Url_submission_list, db_session: Session = De
                             city = extra_url_info.get('city'), 
                             state = extra_url_info.get('state'),
                             country =extra_url_info.get('country'))
-            url_objects.append(url_data)
+            url_to_insert.append(url_data)
 
-
+        # Create feature_data and result_data ,and append to list for bulk insert
         feature_data = models.Feature(domainlength = model_features.get('domainlength'), #1
                                 www = model_features.get('www'), # 2
                                 subdomain = model_features.get('subdomain') , # 3
@@ -99,18 +111,24 @@ def scan_all_ver2(request: schemas.Url_submission_list, db_session: Session = De
                                 len_external_iframe_requrl = model_features.get('len_external_iframe_requrl')                                                       
                                 )   
         result_data = models.Result(submitted_url = url,
-                            phish_prob= result_obj.get_phish_prob(),
-                            is_phishing= result_obj.get_isPhish(),
+                            phish_prob= scan_obj.get_phish_prob(),
+                            is_phishing= scan_obj.get_isPhish(),
                             submission = submission_data,
                             url = url_data,
-                            feature = feature_data)
-        
-        feature_objects.append(feature_data)
-        result_objects.append(result_data)           
-       
-    submission_id = url_crud.create_all_result(submission_data, url_objects, feature_objects, result_objects, db_session)   
+                            feature = feature_data
+                            )
+        feature_to_insert.append(feature_data)
+        result_to_insert.append(result_data)
+    #--------------------- ---------End loop -----------------------------------------
     
-    return submission_id
+    # Check if url_obj_to_update is not an empty list
+    if url_obj_to_update:            
+        url_crud.update_url_db(url_obj_to_update, db_session)
+    
+    # Bulk insert
+    url_crud.create_all_result(submission_data, url_to_insert, feature_to_insert, result_to_insert, db_session)   
+    
+    return submission_data.submission_id
 
 '''
 @router.post("/", status_code=status.HTTP_200_OK)

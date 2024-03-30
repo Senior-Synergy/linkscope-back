@@ -80,10 +80,8 @@ class Feature(BaseModel):
     len_external_embed_requrl : int
     len_external_iframe_requrl : int 
  
-    @field_validator('www', 'subdomain', 'https', 
-                     'http','short_url', 'ip', 'log_contain', 
-                     'pay_contain', 'web_contain', 'cmd_contain', 
-                     'account_contain', 'zerolink', 'ext_favicon', 
+    @field_validator('www', 'subdomain', 'https', 'http', 'short_url', 'ip', 'log_contain', 
+                     'pay_contain', 'web_contain', 'cmd_contain', 'account_contain', 'zerolink', 'ext_favicon', 
                      'submit_to_email', 'sfh', 'redirection', 'domainage', 'domainend')
     @classmethod
     def cast_to_bool(cls, value :bool):
