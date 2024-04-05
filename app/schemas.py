@@ -18,8 +18,8 @@ class Url(BaseModel):
     subdomains : Optional[str]
     scheme : Optional[str]
     # extra domain infomation
-    creation_date : datetime
-    expiration_date : datetime          
+    creation_date : Optional[datetime]
+    expiration_date : Optional[datetime]          
     domainage : int
     domainend : int
     city : Optional[str]
@@ -114,9 +114,9 @@ class Result(BaseModel):
     submitted_url: str
     phish_prob: float
     is_phishing: bool
-    datetime_created: datetime
-    url : Url
-    feature : Feature
+    datetime_created: Optional[datetime]
+    url: Url
+    feature: Feature
     
     @field_validator('phish_prob')
     @classmethod
@@ -124,5 +124,6 @@ class Result(BaseModel):
         if isinstance(value, float):
             return round(value*100, 2)
         return value
-    class Config():
+
+    class Config:
         from_attributes = True
