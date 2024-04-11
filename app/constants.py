@@ -33,3 +33,6 @@ feature_names2 = [ 'domainlength',
                 'redirection', # 27
                 'domainage', #28
                 'domainend' ] # 29
+
+features_selected = [ 'domainlength', 'www', 'https', 'short_url', '@', '-', '=', '.', '/' ,'digit', 
+                     'pcemptylinks', 'pcextlinks', 'pcrequrl','zerolink', 'sfh', 'redirection', 'domainend']

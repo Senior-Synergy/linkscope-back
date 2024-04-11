@@ -112,7 +112,7 @@ def scan_all_ver2(request: schemas.Url_submission_list, db_session: Session = De
                                 )   
         result_data = models.Result(submitted_url = url,
                             phish_prob= scan_obj.get_phish_prob(),
-                            is_phishing= scan_obj.get_isPhish(),
+                            #is_phishing= scan_obj.get_isPhish(),
                             submission = submission_data,
                             url = url_data,
                             feature = feature_data

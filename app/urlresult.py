@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from .urlfeatures import URLFeatures
-from .constants import feature_names, feature_names2
+from .constants import feature_names, features_selected
 import json
 from datetime import date, datetime
 
@@ -26,14 +26,15 @@ class URLresult:
         # model features dict
         self.model_features = url_obj.get_model_features()
         self.model_features_arr = np.array(list(self.model_features.values())[:29]).reshape(1, 29)        
-        self.features_df = pd.DataFrame(self.model_features_arr, columns=feature_names)
+        self.features_df = pd.DataFrame(self.model_features_arr, columns=feature_names)[features_selected]
  
     def get_final_url(self):
         return URLFeatures(self.url).url
 
     def get_phish_prob(self):
         # Probability to be phishing url
-        return self.model.predict_proba(self.features_df)[0, 1]
+        prob = self.model.predict_proba(self.features_df)[0, 1]
+        return float(prob)
 
     def get_isPhish(self):
         # 0 means safe, 1 means phish

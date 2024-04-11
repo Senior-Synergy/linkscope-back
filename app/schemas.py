@@ -113,7 +113,7 @@ class Result(BaseModel):
     url_id: int
     submitted_url: str
     phish_prob: float
-    is_phishing: bool
+    #is_phishing: bool
     datetime_created: Optional[datetime]
     url: Url
     feature: Feature

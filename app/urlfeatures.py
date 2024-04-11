@@ -27,6 +27,7 @@ class URLFeatures:
         self.scheme = self.get_scheme()
         self.shortten_url = self.get_shorturl()
         self.ip_in_url = self.get_ip_in_url()
+        
 
         # all links
         self.all_links = self.get_all_links()
@@ -64,25 +65,26 @@ class URLFeatures:
         self.len_external_embed_requrl = len(self.external_embed_requrl)
         self.len_external_iframe_requrl = len(self.external_iframe_requrl)
         self.len_all_external_requrl = self.len_external_img_requrl + self.len_external_audio_requrl + self.len_external_embed_requrl + self.len_external_iframe_requrl
-        
-        # external favicon
+                # external favicon
         self.external_favicon = self.get_external_favicon() 
         # count external favicon
         self.len_external_favicon = len(self.external_favicon)
         
         try:
             self.w = whois.whois(self.hostname)            
-        except Exception:
+        except Exception as e:
+            print(f"Error calling whois {e}")
             self.w = None
 
-        # domain creation date
+        #if self.w:
+             # domain creation date
         self.creation_date = self.get_creation_date()
-        # domain expiration date
+             # domain expiration date
         self.expiration_date = self.get_expiration_date()
         
-        # Age of domain
+             # Age of domain
         self.domain_age = self.get_domainage()
-        # Registration length of domain
+             # Registration length of domain
         self.domain_end = self.get_domainend()
              
         
@@ -111,7 +113,7 @@ class URLFeatures:
             'pc_extlink' : self.calpc_extlinks(), # 21
             'pc_requrl'  : self.calpc_requrl(), # 22
             'zerolink' : self.haszerolinksinbody(), # 23
-            'ext_favicon' : self.has_external_favicon() , # 24
+            'ext_favicon' : self.has_external_favicon(), # 24
             'submit_to_email' : self.submit2Email(), # 25
             'sfh' :  self.sfh(), # 26
             'redirection' : self.redirection() , # 27
@@ -121,13 +123,16 @@ class URLFeatures:
             'shortten_url' : self.shortten_url,
             'ip_in_url' : self.ip_in_url,                        
             'len_empty_links' : self.len_empty_links,
-            'external_links' : None if self.len_external_links == 0 else json.dumps(self.external_links),
+
+            'external_links' : json.dumps(self.external_links) if self.soup and self.len_external_links != 0 else None,
             'len_external_links' : self.len_external_links,
-            'external_img_requrl' : None if self.len_external_img_requrl == 0 else json.dumps(self.external_img_requrl),
-            'external_audio_requrl' : None if self.len_external_audio_requrl == 0 else json.dumps(self.external_audio_requrl),
-            'external_embed_requrl': None if self.len_external_embed_requrl == 0 else json.dumps(self.external_embed_requrl),
-            'external_iframe_requrl' : None if self.len_external_iframe_requrl == 0 else json.dumps(self.external_iframe_requrl),
-            'len_external_img_requrl' : self.len_external_img_requrl,
+
+            'external_img_requrl' : json.dumps(self.external_img_requrl) if self.len_external_img_requrl != 0 else None,
+            'external_audio_requrl' : json.dumps(self.external_audio_requrl) if self.len_external_audio_requrl != 0 else None,
+            'external_embed_requrl': json.dumps(self.external_embed_requrl) if self.len_external_embed_requrl != 0 else None,
+            'external_iframe_requrl' : json.dumps(self.external_iframe_requrl) if self.len_external_iframe_requrl != 0 else None,
+
+            'len_external_img_requrl' : self.len_external_img_requrl ,
             'len_external_audio_requrl' : self.len_external_audio_requrl,
             'len_external_embed_requrl': self.len_external_embed_requrl,
             'len_external_iframe_requrl' : self.len_external_iframe_requrl,
@@ -147,7 +152,7 @@ class URLFeatures:
             'state' : None if self.w is None or self.w.state is None or any(state in ['REDACTED FOR PRIVACY', 'DATA REDACTED'] for state in self.w.state) else self.w.state,
             'country' : None if self.w is None or self.w.country is None or  any(country in ['REDACTED FOR PRIVACY', 'DATA REDACTED'] for country in self.w.country) else self.w.country
          }
-   
+  
     def get_model_features(self):
         return self.features
     
@@ -204,7 +209,10 @@ class URLFeatures:
             'x\.co|prettylinkpro\.com|scrnch\.me|filoops\.info|vzturl\.com|qr\.net|1url\.com|tweez\.me|v\.gd|' \
             'tr\.im|link\.zip\.net'
         match = re.search(pattern, self.url)
-        return match
+        if match:
+            return match.group()
+        else:
+            return None
     
     def get_ip_in_url(self):
         match = re.search(
@@ -213,85 +221,114 @@ class URLFeatures:
             # IPv4 in hexadecimal
             '((0x[0-9a-fA-F]{1,2})\.(0x[0-9a-fA-F]{1,2})\.(0x[0-9a-fA-F]{1,2})\.(0x[0-9a-fA-F]{1,2})\/)'
             '(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}', self.url)  # Ipv6
-        return match
+        if match:
+            return match.group()
+        else:
+            return None
     
     def get_all_links(self):
-        all_links = self.soup.find_all('a', href=True)
-        return all_links
+        if self.soup:
+            all_links = self.soup.find_all('a', href=True)
+            return all_links
+        return None
     
     def count_empty_links(self):
-        empty_links_count = 0
-        all_links = self.all_links        
-        for link in all_links:
-            if '#' == link['href'][0] or link['href'] == '' or "javascript:void(0)" in link['href'] or "./" == link['href']:
-                empty_links_count += 1
-        return empty_links_count 
+        if self.soup:
+            empty_links_count = 0
+            all_links = self.all_links        
+            for link in all_links:
+                if '#' == link['href'][0] or link['href'] == '' or "javascript:void(0)" in link['href'] or "./" == link['href']:
+                    empty_links_count += 1
+            return empty_links_count 
+        return None
+    
 
             
     def get_external_links(self):
-        external_link_arr = []          
-        page_domain = self.domain
-        all_links = self.all_links  
-        for link in all_links:
-            if link['href'].split(":")[0] in ['http', 'https'] and not page_domain in link['href']:
-                external_link_arr.append(link['href']) 
-        return external_link_arr
+        if self.soup:
+            external_link_arr = []          
+            page_domain = self.domain
+            all_links = self.all_links  
+            for link in all_links:
+                if link['href'].split(":")[0] in ['http', 'https'] and not page_domain in link['href']:
+                    external_link_arr.append(link['href']) 
+            return external_link_arr
+        return None
+        
     
     def get_img_requrl(self):
-        img_requrls = self.soup.find_all('img', src=True)
-        return img_requrls
+        if self.soup:
+            img_requrls = self.soup.find_all('img', src=True)
+            return img_requrls
+        return None
     
     def get_audio_requrl(self):
-        audio_requrls= self.soup.find_all('audio', src=True)
-        return audio_requrls
+        if self.soup:
+            audio_requrls= self.soup.find_all('audio', src=True)
+            return audio_requrls
+        return None
     
     def get_embed_img_requrl(self):
-        embed_requrls = self.soup.find_all('embed', src=True)
-        return embed_requrls 
+        if self.soup:
+            embed_requrls = self.soup.find_all('embed', src=True)
+            return embed_requrls 
+        return None
     
     def get_iframe_requrl(self):
-        iframe_requrls = self.soup.find_all('iframe', src=True)
-        return iframe_requrls
+        if self.soup:
+            iframe_requrls = self.soup.find_all('iframe', src=True)
+            return iframe_requrls
+        return None
         
     def get_external_img_requrl(self):
-        external_img_arr = []
-        page_domain = self.domain
-        for img in self.img_requrl:
-            if img['src'].split(":")[0] in ['http', 'https'] and not page_domain in img['src']:
-                external_img_arr.append(img['src'])
-        return external_img_arr
+        if self.soup:
+            external_img_arr = []
+            page_domain = self.domain
+            for img in self.img_requrl:
+                if img['src'].split(":")[0] in ['http', 'https'] and not page_domain in img['src']:
+                    external_img_arr.append(img['src'])
+            return external_img_arr
+        return None
 
     def get_external_audio_requrl(self):
-        external_audio_arr = []
-        page_domain = self.domain
-        for audio in self.audio_requrl:
-            if audio['src'].split(":")[0] in ['http', 'https'] and not page_domain in audio['src']:
-                external_audio_arr.append(audio['src'])
-        return external_audio_arr
+        if self.soup:
+            external_audio_arr = []
+            page_domain = self.domain
+            for audio in self.audio_requrl:
+                if audio['src'].split(":")[0] in ['http', 'https'] and not page_domain in audio['src']:
+                    external_audio_arr.append(audio['src'])
+            return external_audio_arr
+        return None
     
     def get_external_embed_requrl(self):
-        external_embed_arr = []
-        page_domain = self.domain        
-        for embed in self.embed_requrl:
-            if embed['src'].split(":")[0] in ['http', 'https'] and not page_domain in embed['src']:
-                external_embed_arr.append(embed['src'])
-        return external_embed_arr
+        if self.soup:
+            external_embed_arr = []
+            page_domain = self.domain        
+            for embed in self.embed_requrl:
+                if embed['src'].split(":")[0] in ['http', 'https'] and not page_domain in embed['src']:
+                    external_embed_arr.append(embed['src'])
+            return external_embed_arr
+        return None
     
     def get_external_iframe_requrl(self):
-        external_iframe_arr = []
-        page_domain = self.domain
-        for iframe in self.iframe_requrl:
-            if iframe['src'].split(":")[0] in ['http', 'https'] and not page_domain in iframe['src']:
-                external_iframe_arr.append(iframe['src'])
-        return external_iframe_arr
+        if self.soup:
+            external_iframe_arr = []
+            page_domain = self.domain
+            for iframe in self.iframe_requrl:
+                if iframe['src'].split(":")[0] in ['http', 'https'] and not page_domain in iframe['src']:
+                    external_iframe_arr.append(iframe['src'])
+            return external_iframe_arr
+        return None
 
     def get_external_favicon(self):
-        favicon_link_arr = []
-        page_domain = self.domain
-        for favicon_link in self.soup.find_all('link', rel=['icon', 'shortcut icon']):
-            if favicon_link['href'].split(":")[0] in ['http', 'https'] and not page_domain in favicon_link['href']:
-                favicon_link_arr.append(favicon_link['href'])                
-        return favicon_link_arr
+        if self.soup:
+            favicon_link_arr = []
+            page_domain = self.domain
+            for favicon_link in self.soup.find_all('link', rel=['icon', 'shortcut icon']):
+                if favicon_link['href'].split(":")[0] in ['http', 'https'] and not page_domain in favicon_link['href']:
+                    favicon_link_arr.append(favicon_link['href'])                
+            return favicon_link_arr
+        return None
     
     def get_creation_date(self):
         creation_date = self.w.creation_date
@@ -477,7 +514,7 @@ class URLFeatures:
 
     # 20 Percentage of links that do not lead to another page
     def calpc_emptylinks(self):
-        try:       
+        if self.soup:       
             total_links_count = self.len_all_links                   
             empty_links_count = self.len_empty_links         
             if total_links_count > 0:
@@ -486,13 +523,12 @@ class URLFeatures:
             else:
                 percentage_empty_links = 0
             return percentage_empty_links
-        except Exception as e:
-            print((f'Error of empty links: {str(e)}'))
+        else:
             return -1
 
     # 21 Percentage of links that lead to an external page.
     def calpc_extlinks(self):
-        try:
+        if self.soup:
             total_links_count = self.len_all_links                  
             external_links_count = self.len_external_links
                                      
@@ -503,12 +539,12 @@ class URLFeatures:
                 percentage_external_links = 0
 
             return percentage_external_links
-        except Exception:
+        else:
             return -1
 
     # 22 Percentage of external resources URL /Request URL ,examines whether the external objects contained within a webpage
     def calpc_requrl(self):     
-        try:
+        if self.soup:
             total_requrl_count = self.len_all_requrl
             external_requrl_count = self.len_all_external_requrl
 
@@ -517,43 +553,43 @@ class URLFeatures:
             else:
                 percentage = 0
             return percentage
-        except Exception:
+        else:
             return -1
 
     # 23 Zero links in body portion of HTML
     def haszerolinksinbody(self):
-        try:
+        if self.soup:
             body_links = self.soup.body.find_all('a', href=True)
             if len(body_links) == 0:
                 return 1
             return 0
-        except Exception:
+        else:
             return -1
 
     # 24 external favicon
     def has_external_favicon(self):
-        try:
+        if self.soup:
             external_favicon_count = self.len_external_favicon        
             if external_favicon_count == 0:
                 return 0
             else:
                 return 1
-        except Exception:
+        else:
             return -1
 
     # 25 submit2Email
     def submit2Email(self):
-        try:
+        if self.soup:
             if re.search(r"\b(mail\(\)|mailto:?)\b", self.soup.text, re.IGNORECASE):
                 return 1
             else:
                 return 0
-        except Exception:
+        else:
             return -1
 
     # 26 SFHs that contain an empty string or “about:blank” are considered doubtful
     def sfh(self):
-        try:
+        if self.soup:
             domain = tldextract.extract(self.url).domain
             for form in self.soup.find_all('form', action=True):
                 if form['action'] == "" or form['action'] == "about:blank":
@@ -563,8 +599,7 @@ class URLFeatures:
                 else:
                     return 0
             return 0
-        except Exception as e:
-            
+        else:           
             return -1
 
     # 27 redirection

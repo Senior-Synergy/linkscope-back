@@ -96,7 +96,6 @@ class Result(Base):
     feature_id = Column(Integer, ForeignKey('feature.feature_id'))
     submitted_url = Column(String(2000))
     phish_prob = Column(Float)
-    is_phishing = Column(Boolean)
     datetime_created = Column(DateTime(timezone=True), server_default=func.now())
 
     submission = relationship("Submission", back_populates="result")
