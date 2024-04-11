@@ -3,7 +3,7 @@ from sqlalchemy import update
 from app import models, schemas
 from fastapi import HTTPException, status
 from app.urlresult import *
-from app.constants import feature_names2
+from app.constants import feature_names_2
 from typing import List
 import random
 #-------------------------------------Create : Bulk Insert-----------------------------------------------

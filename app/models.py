@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, Foreig
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.types import JSON
-from .database import Base
+from app.database import Base
 
 #from sqlalchemy.orm import sessionmaker
 #from sqlalchemy import create_engine, text

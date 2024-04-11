@@ -1,18 +1,20 @@
 import numpy as np
 import pandas as pd
-from .urlfeatures import URLFeatures
-from .constants import feature_names, features_selected
+from app.urlfeatures import URLFeatures
+from app.constants import feature_names, features_selected
 import json
 from datetime import date, datetime
 
+
 def serialize_datetime(obj):
-    if isinstance(obj, datetime): 
-        return obj.isoformat() 
-    raise TypeError("Type not serializable") 
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    raise TypeError("Type not serializable")
+
 
 class URLresult:
     def __init__(self, url, model):
-        
+
         self.model = model
         self.url = url  # 1
         url_obj = URLFeatures(url)
@@ -25,9 +27,11 @@ class URLresult:
         self.extra_info = url_obj.get_extra_info()
         # model features dict
         self.model_features = url_obj.get_model_features()
-        self.model_features_arr = np.array(list(self.model_features.values())[:29]).reshape(1, 29)        
-        self.features_df = pd.DataFrame(self.model_features_arr, columns=feature_names)[features_selected]
- 
+        self.model_features_arr = np.array(
+            list(self.model_features.values())[:29]).reshape(1, 29)
+        self.features_df = pd.DataFrame(self.model_features_arr, columns=feature_names)[
+            features_selected]
+
     def get_final_url(self):
         return URLFeatures(self.url).url
 
@@ -39,10 +43,9 @@ class URLresult:
     def get_isPhish(self):
         # 0 means safe, 1 means phish
         return self.model.predict(self.features_df)[0]
-    
+
     def get_model_features(self):
         return self.model_features
-    
+
     def get_extra_info(self):
         return self.extra_info
-    

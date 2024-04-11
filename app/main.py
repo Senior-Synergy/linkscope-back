@@ -1,14 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from . import models
-from .database import engine
+from app import models
+from app.database import engine
+from mangum import Mangum
 
-from .api.api_v1.api_v1 import router as router_v1
-from .api.api_v2.api import router as router_v2
+from app.api.api_v1.api_v1 import router as router_v1
+from app.api.api_v2.api import router as router_v2
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+handler = Mangum(app, lifespan="off")
 
 origins = ["*"]
 
