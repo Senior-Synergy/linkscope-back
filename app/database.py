@@ -1,6 +1,6 @@
 # Database Initializtion
 from sqlalchemy import create_engine, text
-from sqlalchemy.ext.declarative import declarative_base #for mapping
+from sqlalchemy.ext.declarative import declarative_base  # for mapping
 from sqlalchemy.orm import sessionmaker
 
 
@@ -14,10 +14,11 @@ PASSWORD = config['password']
 DB_NAME = 'urldata'
 
 url = f'mysql+mysqlconnector://{USER}:{PASSWORD}@{HOSTNAME}:3306/{DB_NAME}'
-#url = 'mysql://admin:seniorsynergy88@url-1.crfthzhiprmr.ap-southeast-2.rds.amazonaws.com:3306/{DB_NAME}'
-#engine = create_engine(url,connect_args={"check_same_thread": False})
+# url = 'mysql://admin:seniorsynergy88@url-1.crfthzhiprmr.ap-southeast-2.rds.amazonaws.com:3306/{DB_NAME}'
+# engine = create_engine(url,connect_args={"check_same_thread": False})
 engine = create_engine(url)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
 
 def get_db():
     db = SessionLocal()
@@ -25,5 +26,6 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 Base = declarative_base()

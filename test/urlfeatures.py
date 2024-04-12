@@ -1,35 +1,36 @@
 from urllib.parse import urlparse
-from tld import get_tld, is_tld
+from bs4 import BeautifulSoup
 import tldextract
 import whois
 import datetime
 from datetime import datetime
 import time
-from bs4 import BeautifulSoup
 import re
-
 import requests
+
+
 headers = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 
-
-class FeatureExtraction:
-    features = []
-
+class URLFeatures:
+    #features = [] 
     def __init__(self, urlt):
         self.features = []
+        self.extra_features = {}
+
         urldata = self.getfinalurl(urlt)
         self.url = urldata[0]
         self.soup = urldata[1]
         self.urlhistory = urldata[2]
-        #print("get soup successfully")
+
+        # print("get soup successfully")
 
         try:
             self.w = whois.whois(urlparse(self.url).netloc)
         except Exception:
             self.w = None
-        #print("get whois successfully")
-
-        # self.features.append(urlt)
+   
+                    
+        #-----------------------Features Append--------------------------------------------------------------
         # Address bar based features (10)
         self.features.append(self.getdomainlength())  # 1
         self.features.append(self.contains_www())  # 2
@@ -67,6 +68,11 @@ class FeatureExtraction:
         self.features.append(self.domainAge() if self.w else -1)  # 28
         self.features.append(self.domainEnd() if self.w else -1)  # 29
 
+
+    def getFeaturesList(self):
+        return self.features
+    
+      
     # 0.UsingIp
     def getfinalurl(self, urlt):
         parsed_url = urlparse(urlt)
@@ -91,6 +97,7 @@ class FeatureExtraction:
     def getdomainlength(self):
         hostname = urlparse(self.url).hostname
         if hostname:
+            self.extra_features['hostname'] = hostname # 1 hostname
             domain_length = len(hostname)
             return domain_length
         return -1
@@ -111,6 +118,7 @@ class FeatureExtraction:
         subd = ext.subdomain
         subd_parts = subd.split('.')
         if subd_parts:
+            self.extra_features['subdomain'] = subd_parts # 2 subdomain
             if len(subd_parts) > 1:
                 return 1
             else:
@@ -122,6 +130,7 @@ class FeatureExtraction:
         htp = urlparse(self.url).scheme
         match = str(htp)
         if htp:
+            self.extra_features['protocol'] = match # 3 scheme/protocol
             if match == 'https':
                 return 0
             else:
@@ -151,6 +160,7 @@ class FeatureExtraction:
             'tr\.im|link\.zip\.net'
         match = re.search(pattern, self.url)
         if match:
+            self.extra_features['short_url'] = match # 4 short url
             return 1
         else:
             return 0
@@ -164,6 +174,7 @@ class FeatureExtraction:
             '((0x[0-9a-fA-F]{1,2})\.(0x[0-9a-fA-F]{1,2})\.(0x[0-9a-fA-F]{1,2})\.(0x[0-9a-fA-F]{1,2})\/)'
             '(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}', self.url)  # Ipv6
         if match:
+            self.extra_features['ip_in_url'] = match #  5 ip address in url
             return 1
         else:
             return 0
@@ -240,12 +251,14 @@ class FeatureExtraction:
     # 20 Percentage of links that do not lead to another page
     def calpc_emptylinks(self):
         try:
+          
             all_links = self.soup.find_all('a', href=True)
             total_links_count = len(all_links)
             empty_links_count = 0
             for link in all_links:
                 if '#' == link['href'][0] or link['href'] == '' or "javascript:void(0)" in link['href'] or "./" == link['href']:
-                    empty_links_count += 1
+                    empty_links_count += 1          
+                    
             if total_links_count > 0:
                 percentage_empty_links = (
                     empty_links_count / total_links_count) * 100
@@ -258,16 +271,21 @@ class FeatureExtraction:
     # 21 Percentage of links that lead to an external page.
     def calpc_extlinks(self):
         try:
+            external_link_arr = []
             all_links = self.soup.find_all('a', href=True)
             total_links_count = len(all_links)
             page_domain = tldextract.extract(self.url).domain
+            self.extra_features['domain'] = page_domain   # 7 domain name
             external_links_count = 0
             for link in all_links:
                 if link['href'].split(":")[0] in ['http', 'https'] and not page_domain in link['href']:
+                    external_link_arr.append(link['href']) 
                     external_links_count += 1
+            self.extra_features['ext_link'] = external_link_arr # 8 external links in arr
+                               
             if total_links_count > 0:
                 percentage_external_links = (
-                    external_links_count / total_links_count) * 100
+                    external_links_count / total_links_count) * 100 
             else:
                 percentage_external_links = 0
 
@@ -279,24 +297,39 @@ class FeatureExtraction:
     def calpc_requrl(self):
         i = 0
         success = 0
+        requrl = {}
+        ext_img = []
+        ext_audio = []
+        ext_embed = []
+        ext_iframe = []
         try:
             page_domain = tldextract.extract(self.url).domain
             for img in self.soup.find_all('img', src=True):
                 if img['src'].split(":")[0] in ['http', 'https'] and not page_domain in img['src']:
                     success += 1
+                    ext_img.append(img['src'])
                 i += 1
             for audio in self.soup.find_all('audio', src=True):
                 if audio['src'].split(":")[0] in ['http', 'https'] and not page_domain in audio['src']:
                     success += 1
+                    ext_audio.append(audio['src'])
                 i += 1
             for embed in self.soup.find_all('embed', src=True):
                 if embed['src'].split(":")[0] in ['http', 'https'] and not page_domain in embed['src']:
                     success += 1
+                    ext_embed.append(embed['src'])
                 i += 1
             for iframe in self.soup.find_all('iframe', src=True):
                 if iframe['src'].split(":")[0] in ['http', 'https'] and not page_domain in iframe['src']:
                     success += 1
+                    ext_iframe.append(iframe['src'])
                 i += 1
+
+            requrl['ext_img'] = ext_img
+            requrl['ext_audio'] = ext_audio
+            requrl['ext_embed'] = ext_embed
+            requrl['ext_iframe'] = ext_iframe
+            self.extra_features['requrl'] = requrl   # 9 requesy url 
             if i > 0:
                 percentage = (success/float(i) * 100)
             else:
@@ -318,13 +351,16 @@ class FeatureExtraction:
     # 24 external favicon
     def has_external_favicon(self):
         try:
+            favicon_link_arr = []
             favicon_links = self.soup.find_all(
                 'link', rel=['icon', 'shortcut icon'])
             page_domain = tldextract.extract(self.url).domain
             external_favicon_count = 0
             for favicon_link in favicon_links:
                 if favicon_link['href'].split(":")[0] in ['http', 'https'] and not page_domain in favicon_link['href']:
+                    favicon_link_arr.append(favicon_link['href'])
                     external_favicon_count += 1
+            self.extra_features['ext_favicon'] = favicon_link_arr  # 10 external favicon
             if external_favicon_count == 0:
                 return 0
             else:
@@ -382,6 +418,13 @@ class FeatureExtraction:
             return -1
         else:
             ageofdomain = abs((expiration_date - creation_date).days)
+            print(ageofdomain)
+            
+            self.extra_features['creation_date'] = creation_date.strftime("%Y-%m-%d %H:%M:%S")
+            self.extra_features['expiration_date'] = expiration_date.strftime("%Y-%m-%d %H:%M:%S")
+            self.extra_features['domainage'] = ageofdomain
+
+
         return 1 if (ageofdomain/30) < 6 else 0
 
     # 29 Domain Registration length
@@ -398,7 +441,8 @@ class FeatureExtraction:
             return -1
         else:
             registration_length = abs((expiration_date - today).days)
+            self.extra_features['registration_length'] = registration_length
         return 1 if registration_length / 365 <= 1 else 0
+    
 
-    def getFeaturesList(self):
-        return self.features
+
