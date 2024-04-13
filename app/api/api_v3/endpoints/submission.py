@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from app import database, models
+from app import models
+from app.database import get_db
 
 from app.api.api_v3 import schemas
 from app.api.api_v3.schemas import SubmissionResult
@@ -12,17 +13,15 @@ from app.utils import load_model
 
 router = APIRouter()
 
-get_db = database.get_db
-
 
 @router.get("/")
-def read_root():
+async def read_root():
     return {"message": "Hello, From Backend's /scan!"}
 
 
 # Scan and Bulk Insert all data to DB (faster)
-@router.post("/create", response_model=SubmissionResult, status_code=200)
-def scan_urls(request: schemas.SubmissionUrls, db_session: Session = Depends(get_db)):
+@router.post("/create/", response_model=SubmissionResult, status_code=200)
+async def scan_urls(request: schemas.SubmissionUrls, db: Session = Depends(get_db)):
 
     url_to_insert, feature_to_insert, result_to_insert, url_obj_to_update = [], [], [], []
     urls = request.urls
@@ -40,7 +39,7 @@ def scan_urls(request: schemas.SubmissionUrls, db_session: Session = Depends(get
 
         # Create url_data and append to list for bulk insert/update
         # Search if there is final_url in db, if exists => update, else => insert
-        existing_url_result = url_crud.search_url(final_url, db_session)
+        existing_url_result = url_crud.search_url(final_url, db)
         if existing_url_result:
             url_data = existing_url_result
             url_obj_to_update.append({"url_id": existing_url_result.url_id,
@@ -171,23 +170,23 @@ def scan_urls(request: schemas.SubmissionUrls, db_session: Session = Depends(get
 
     # Check if url_obj_to_update is not an empty list
     if url_obj_to_update:
-        url_crud.update_url_db(url_obj_to_update, db_session)
+        url_crud.update_url_db(url_obj_to_update, db)
 
     # Bulk insert
     url_crud.create_all_result(
-        submission_data, url_to_insert, feature_to_insert, result_to_insert, db_session)
+        submission_data, url_to_insert, feature_to_insert, result_to_insert, db)
 
     return {"submission_id": submission_data.submission_id}
 
 
 @router.get("/{submission_id}", response_model=schemas.SubmissionExtended, status_code=200)
-def get_submission_result_data(submission_id: int, session: Session = Depends(get_db)):
+async def get_submission_result_data(submission_id: int, db: Session = Depends(get_db)):
     try:
         submission_data = crud.retrieve_submission_data(
-            submission_id, session)
+            submission_id, db)
 
         results = crud.retrieve_result_data_with_submission_id(
-            submission_id, session)
+            submission_id, db)
 
         return {
             **submission_data.__dict__,
