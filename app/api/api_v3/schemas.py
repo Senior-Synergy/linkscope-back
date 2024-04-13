@@ -14,11 +14,10 @@ class UrlBase(BaseModel):
     final_url: str
     hostname: str
     domain: str
-    subdomains: Optional[dict]
+    subdomains: Optional[str]
     scheme: Optional[str]
 
     # ---------------------------------
-
     creation_date: Optional[datetime]
     expiration_date: Optional[datetime]
     domainage: Optional[int]
@@ -54,38 +53,27 @@ class ResultBase(BaseModel):
 
 class FeatureBase(BaseModel):
     feature_id: int
-    domainlength: int
-    www: bool
-    subdomain: bool
-    https: bool
-    http: bool
-    short_url: bool
-    ip: bool
-    at_count: int
-    dash_count: int
-    equal_count: int
-    dot_count: int
-    underscore_count: int
-    slash_count: int
-    digit_count: int
-    log_contain: bool
-    pay_contain: bool
-    web_contain: bool
-    cmd_contain: bool
-    account_contain: bool
-    pc_emptylink: float
-    pc_extlink: float
-    pc_requrl: float
-    zerolink: bool
-    ext_favicon: bool
-    submit_to_email: bool
-    sfh: bool
-    redirection: bool
-    domainage: bool
-    domainend: bool
+    domainlength : int #1
+    www : bool  # 2    
+    https : bool  # 3    
+    short_url : bool  # 4
+    ip : bool  # 5    
+    dash_count : int  # 6
+    equal_count : int  # 7
+    dot_count : int # 8
+    underscore_count: int  # 9
+    slash_count : int  # 10
+    digit_count : int  # 11   
+    pc_emptylink : float  # 12
+    pc_extlink : float # 13
+    pc_requrl : float # 14
+    zerolink : bool # 15
+    ext_favicon : bool  # 16    
+    sfh : bool  # 17
+    redirection : bool  # 18   
+    domainend : bool  # 19 
 
     # ---------------------------------
-
     shortten_url: Optional[str]
     ip_in_url: Optional[str]
     len_empty_links: int
@@ -100,17 +88,16 @@ class FeatureBase(BaseModel):
     len_external_embed_requrl: int
     len_external_iframe_requrl: int
 
-    @field_validator('www', 'subdomain', 'https', 'http', 'short_url', 'ip', 'log_contain',
-                     'pay_contain', 'web_contain', 'cmd_contain', 'account_contain', 'zerolink', 'ext_favicon',
-                     'submit_to_email', 'sfh', 'redirection', 'domainage', 'domainend')
+    @field_validator('www', 'https', 'short_url', 'ip', 
+                     'zerolink', 'ext_favicon','sfh', 'redirection', 'domainend')
     @classmethod
-    def cast_to_bool(cls, value: bool):
+    def cast_to_bool(cls, value :bool):
         if value == False:
             return False
         elif value == True:
             return True
         else:
-            return None
+            return None   
 
     @field_validator('pc_emptylink', 'pc_extlink', 'pc_requrl')
     @classmethod

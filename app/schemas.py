@@ -34,7 +34,6 @@ class Url(BaseModel):
         return json.loads(value)
    
    
-  
 class Feature(BaseModel): 
     domainlength : int #1
     www : bool  # 2    
