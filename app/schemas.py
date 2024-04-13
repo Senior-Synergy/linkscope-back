@@ -35,36 +35,26 @@ class Url(BaseModel):
    
    
   
-class Feature(BaseModel):
+class Feature(BaseModel): 
     domainlength : int #1
-    www : bool  # 2
-    subdomain : bool  # 3
-    https : bool  # 4
-    http : bool  # 5
-    short_url : bool  # 6
-    ip : bool  # 7
-    at_count : int  # 8
-    dash_count : int  # 9
-    equal_count : int  # 10
-    dot_count : int # 11
-    underscore_count: int  # 12
-    slash_count : int  # 13
-    digit_count : int  # 14
-    log_contain : bool  # 15
-    pay_contain: bool  # 16
-    web_contain : bool  #17
-    cmd_contain : bool  # 18
-    account_contain : bool  # 19
-    pc_emptylink : float  # 20
-    pc_extlink : float # 21
-    pc_requrl : float # 22
-    zerolink : bool #23
-    ext_favicon : bool  # 24
-    submit_to_email : bool  # 25
-    sfh : bool  # 26
-    redirection : bool  # 27
-    domainage : bool  # 28
-    domainend : bool  # 29 
+    www : bool  # 2    
+    https : bool  # 3    
+    short_url : bool  # 4
+    ip : bool  # 5    
+    dash_count : int  # 6
+    equal_count : int  # 7
+    dot_count : int # 8
+    underscore_count: int  # 9
+    slash_count : int  # 10
+    digit_count : int  # 11   
+    pc_emptylink : float  # 12
+    pc_extlink : float # 13
+    pc_requrl : float # 14
+    zerolink : bool # 15
+    ext_favicon : bool  # 16    
+    sfh : bool  # 17
+    redirection : bool  # 18   
+    domainend : bool  # 19 
 
     shortten_url : Optional[str]
     ip_in_url : Optional[str]                       
@@ -80,9 +70,8 @@ class Feature(BaseModel):
     len_external_embed_requrl : int
     len_external_iframe_requrl : int 
  
-    @field_validator('www', 'subdomain', 'https', 'http', 'short_url', 'ip', 'log_contain', 
-                     'pay_contain', 'web_contain', 'cmd_contain', 'account_contain', 'zerolink', 'ext_favicon', 
-                     'submit_to_email', 'sfh', 'redirection', 'domainage', 'domainend')
+    @field_validator('www', 'https', 'short_url', 'ip', 
+                     'zerolink', 'ext_favicon','sfh', 'redirection', 'domainend')
     @classmethod
     def cast_to_bool(cls, value :bool):
         if value == False:

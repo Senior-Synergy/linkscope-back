@@ -1,9 +1,7 @@
-feature_names = [
-    'domainlength', 'www', 'subdomain', 'https', 'http', 'short_url', 'ip',
-    '@', '-', '=', '.', '_', '/', 'digit', 'log', 'pay', 'web', 'cmd', 'account',
-    'pcemptylinks', 'pcextlinks', 'pcrequrl', 'zerolink', 'extfavicon', 'submit2email',
-    'sfh', 'redirection', 'domainage', 'domainend'
-]
+feature_names = ['domainlength', 'www', 'https', 'short_url', 'ip','-', '=', '.', '/', '_', 'digit', 'pcemptylinks', 'pcextlinks', 'pcrequrl','zerolink',
+                     'extfavicon', 'sfh', 'redirection', 'domainend']
+
+
 feature_names2 = [ 'domainlength', 
                   'www',                       
                   'subdomain', # 3
@@ -34,5 +32,3 @@ feature_names2 = [ 'domainlength',
                 'domainage', #28
                 'domainend' ] # 29
 
-features_selected = [ 'domainlength', 'www', 'https', 'short_url', '@', '-', '=', '.', '/' ,'digit', 
-                     'pcemptylinks', 'pcextlinks', 'pcrequrl','zerolink', 'sfh', 'redirection', 'domainend']

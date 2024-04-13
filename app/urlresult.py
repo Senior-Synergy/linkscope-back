@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from .urlfeatures import URLFeatures
-from .constants import feature_names, features_selected
+from .constants import feature_names
 import json
 from datetime import date, datetime
 
@@ -16,17 +16,12 @@ class URLresult:
         self.model = model
         self.url = url  # 1
         url_obj = URLFeatures(url)
-        ''' 
-        self.features_arr = np.array(obj.getFeaturesList()).reshape(1, 29)
-        self.features_df = pd.DataFrame(
-            self.features_arr, columns=feature_names)  # 2
-        '''
         # url extra information dict
         self.extra_info = url_obj.get_extra_info()
         # model features dict
         self.model_features = url_obj.get_model_features()
-        self.model_features_arr = np.array(list(self.model_features.values())[:29]).reshape(1, 29)        
-        self.features_df = pd.DataFrame(self.model_features_arr, columns=feature_names)[features_selected]
+        self.model_features_arr = np.array(list(self.model_features.values())[:19]).reshape(1, 19)
+        self.features_df = pd.DataFrame(self.model_features_arr, columns= feature_names)
  
     def get_final_url(self):
         return URLFeatures(self.url).url
