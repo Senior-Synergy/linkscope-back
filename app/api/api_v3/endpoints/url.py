@@ -39,7 +39,7 @@ async def get_url_data_with_latest_result_only(url_id: int, db: Session = Depend
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/url-list/", response_model=list[schemas.UrlExtended], status_code=200)
+@router.get("/url-list", response_model=list[schemas.UrlExtended], status_code=200)
 async def get_all_urls(db: Session = Depends(get_db)):
     # TO-DO: Pagination
     try:
@@ -51,7 +51,7 @@ async def get_all_urls(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/search/", status_code=200)
+@router.post("/search", status_code=200)
 async def get_matched_urls(request: schemas.UrlSearch, db: Session = Depends(get_db)):
     try:
         # Not necessary for now. Will implement later...

@@ -20,7 +20,7 @@ async def read_root():
 
 
 # Scan and Bulk Insert all data to DB (faster)
-@router.post("/create/", response_model=SubmissionResult, status_code=200)
+@router.post("/create", response_model=SubmissionResult, status_code=200)
 async def scan_urls(request: schemas.SubmissionUrls, db: Session = Depends(get_db)):
 
     url_to_insert, feature_to_insert, result_to_insert, url_obj_to_update = [], [], [], []

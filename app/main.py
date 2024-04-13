@@ -10,7 +10,6 @@ from app.api.api_v2.api import router as router_v2
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-handler = Mangum(app, lifespan="off")
 
 origins = ["*"]
 
@@ -31,3 +30,6 @@ def read_root():
 # API Endpoints
 app.include_router(router_v2, prefix="/api/v2")
 app.include_router(router_v3, prefix="/api/v3")
+
+
+handler = Mangum(app)

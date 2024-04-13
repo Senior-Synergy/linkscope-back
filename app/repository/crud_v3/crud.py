@@ -46,7 +46,7 @@ def retrieve_all_urls(session: Session):
 
             urls.append({
                 **url.__dict__,
-                "result": result
+                "results": [result]
             })
 
         return urls
