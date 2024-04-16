@@ -26,7 +26,7 @@ async def get_url_data_with_results(url_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/url-info/latest/{url_id}", response_model=schemas.UrlExtended, status_code=200)
+@router.get("/url-info/latest/{url_id}", response_model=schemas.Url, status_code=200)
 async def get_url_data_with_latest_result_only(url_id: int, db: Session = Depends(get_db)):
     try:
         url = crud.retrieve_url_with_results(
@@ -39,7 +39,7 @@ async def get_url_data_with_latest_result_only(url_id: int, db: Session = Depend
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/url-list", response_model=list[schemas.UrlExtended], status_code=200)
+@router.get("/url-list", response_model=list[schemas.Url], status_code=200)
 async def get_all_urls(db: Session = Depends(get_db)):
     # TO-DO: Pagination
     try:
@@ -51,11 +51,24 @@ async def get_all_urls(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/search", status_code=200)
-async def get_matched_urls(request: schemas.UrlSearch, db: Session = Depends(get_db)):
+@router.post("/url-list/search", status_code=200)
+async def search_urls_by_keyword(request: schemas.UrlSearchRequest, db: Session = Depends(get_db)):
     try:
-        # Not necessary for now. Will implement later...
-        pass
+        search_results = crud.retrieve_urls(
+            db,
+            request.keyword,
+            request.page,
+            request.page_size,
+            request.creation_date_start,
+            request.creation_date_end,
+            request.phish_prob_min,
+            request.phish_prob_max,
+            request.country,
+            request.sort_by,
+            request.sort_direction,
+        )
+
+        return search_results
     except HTTPException as e:
         raise e
     except Exception as e:

@@ -4,7 +4,7 @@ from app import models
 from app.database import get_db
 
 from app.api.api_v3 import schemas
-from app.api.api_v3.schemas import SubmissionResult
+from app.api.api_v3.schemas import SubmissionResponse
 
 from app.repository import url_crud
 from app.repository.crud_v3 import crud
@@ -20,8 +20,8 @@ async def read_root():
 
 
 # Scan and Bulk Insert all data to DB (faster)
-@router.post("/create", response_model=SubmissionResult, status_code=200)
-async def scan_urls(request: schemas.SubmissionUrls, db: Session = Depends(get_db)):
+@router.post("/create", response_model=SubmissionResponse, status_code=200)
+async def scan_urls(request: schemas.SubmissionRequest, db: Session = Depends(get_db)):
 
     url_to_insert, feature_to_insert, result_to_insert, url_obj_to_update = [], [], [], []
     urls = request.urls
@@ -133,7 +133,7 @@ async def scan_urls(request: schemas.SubmissionUrls, db: Session = Depends(get_d
     return {"submission_id": submission_data.submission_id}
 
 
-@router.get("/{submission_id}", response_model=schemas.SubmissionExtended, status_code=200)
+@router.get("/{submission_id}", response_model=schemas.Submission, status_code=200)
 async def get_submission_result_data(submission_id: int, db: Session = Depends(get_db)):
     try:
         submission_data = crud.retrieve_submission_data(
