@@ -1,6 +1,6 @@
 from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
-from sqlalchemy import update, asc, desc, and_
+from sqlalchemy import update, asc, desc, and_, or_
 
 from typing import Optional
 from math import ceil
@@ -70,15 +70,15 @@ def retrieve_urls(
     phish_prob_max: Optional[float] = None,
     country: Optional[str] = None,
     sort_by: Optional[str] = None,
-    sort_direction: Optional[str] = 'dsc'
+    sort_direction: Optional[str] = 'desc'
 ):
     try:
         offset = (page - 1) * page_size
-        query = session.query(Url, Result).join(
-            Result, Url.url_id == Result.url_id)
+        query = session.query(Result, Url).join(
+            Url, Result.url_id == Url.url_id)
 
-        query = query.filter(Url.final_url.ilike(f"%{keyword}%"))
-        query = query.filter(Result.submitted_url.ilike(f"%{keyword}%"))
+        query = query.filter(or_(Url.final_url.ilike(
+            f"%{keyword}%"), Result.submitted_url.ilike(f"%{keyword}%")))
 
         # Additional filters on results
         if creation_date_start:
@@ -117,16 +117,16 @@ def retrieve_urls(
 
         # Convert fetched data into a list of dictionaries
         formatted_data = []
-        
-        for url, result in fetched_data:
+
+        for result, url in fetched_data:
             formatted_data.append({
-                **url.__dict__,
-                "result": {
-                    **result.__dict__,
+                **result.__dict__,
+                "url": {
+                    **url.__dict__,
                 }
                 # Add other attributes as needed
             })
-            
+
         # formatted_data = {}
         # for url, result in fetched_data:
         #     url_dict = url.__dict__
