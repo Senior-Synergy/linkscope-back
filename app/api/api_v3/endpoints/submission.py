@@ -42,36 +42,40 @@ async def scan_urls(request: schemas.SubmissionRequest, db: Session = Depends(ge
         existing_url_result = url_crud.search_url(final_url, db)
         if existing_url_result:
             url_data = existing_url_result
-            url_obj_to_update.append({"url_id": existing_url_result.url_id,
-                                      "final_url": final_url,
-                                      "hostname": extra_url_info.get('hostname'),
-                                      "domain": extra_url_info.get('domain'),
-                                      "subdomains": extra_url_info.get('subdomains'),
-                                      "scheme": extra_url_info.get('scheme'),
-                                      # extra domain infomation
-                                      "creation_date": extra_url_info.get('creation_date'),
-                                      "expiration_date": extra_url_info.get('expiration_date'),
-                                      "domainage": extra_url_info.get('domainage'),
-                                      "domainend": extra_url_info.get('domainend'),
-                                      "city": extra_url_info.get('city'),
-                                      "state": extra_url_info.get('state'),
-                                      "country": extra_url_info.get('country')})
+            url_obj_to_update.append({"url_id" : existing_url_result.url_id,
+                                "final_url" : final_url,
+                                "hostname" : extra_url_info.get('hostname'),        
+                                "domain" : extra_url_info.get('domain'),
+                                "registrar" : extra_url_info.get('registrar'),
+                                "ip_address" : extra_url_info.get('ip_address'),
+                                "subdomains" : extra_url_info.get('subdomains'),
+                                "scheme" : extra_url_info.get('scheme'),
+                                    # extra domain infomation
+                                "creation_date" : extra_url_info.get('creation_date'),
+                                "expiration_date" : extra_url_info.get('expiration_date'),            
+                                "domainage" : extra_url_info.get('domainage'),
+                                "domainend" : extra_url_info.get('domainend'),
+                                "city" : extra_url_info.get('city'), 
+                                "state" : extra_url_info.get('state'),
+                                "country" :extra_url_info.get('country'),
+                                "google_safe_browsing" : extra_url_info.get('google_safe_browsing')})
         else:
-            url_data = models.Url(final_url=final_url,
-                                  hostname=extra_url_info.get('hostname'),
-                                  domain=extra_url_info.get('domain'),
-                                  subdomains=extra_url_info.get('subdomains'),
-                                  scheme=extra_url_info.get('scheme'),
-                                  # extra domain infomation
-                                  creation_date=extra_url_info.get(
-                                      'creation_date'),
-                                  expiration_date=extra_url_info.get(
-                                      'expiration_date'),
-                                  domainage=extra_url_info.get('domainage'),
-                                  domainend=extra_url_info.get('domainend'),
-                                  city=extra_url_info.get('city'),
-                                  state=extra_url_info.get('state'),
-                                  country=extra_url_info.get('country'))
+            url_data = models.Url(final_url= final_url,
+                            hostname = extra_url_info.get('hostname'),        
+                            domain = extra_url_info.get('domain'),
+                            registrar = extra_url_info.get('registrar'),
+                            ip_address = extra_url_info.get('ip_address'),
+                            subdomains = extra_url_info.get('subdomains'),
+                            scheme = extra_url_info.get('scheme'),
+                                # extra domain infomation
+                            creation_date = extra_url_info.get('creation_date'),
+                            expiration_date = extra_url_info.get('expiration_date'),            
+                            domainage = extra_url_info.get('domainage'),
+                            domainend = extra_url_info.get('domainend'),
+                            city = extra_url_info.get('city'), 
+                            state = extra_url_info.get('state'),
+                            country =extra_url_info.get('country'),
+                            google_safe_browsing = extra_url_info.get('google_safe_browsing'))
             url_to_insert.append(url_data)
 
         # Create feature_data and result_data ,and append to list for bulk insert

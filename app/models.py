@@ -23,6 +23,8 @@ class Url(Base):
 
     hostname = Column(String(200))
     domain = Column(String(200))
+    registrar = Column(String(200)) #
+    ip_address = Column(String(200)) #
     subdomains = Column(String(200))
     scheme = Column(String(200))
       # extra domain infomation
@@ -33,6 +35,7 @@ class Url(Base):
     city = Column(String(100)) 
     state = Column(String(100)) 
     country =Column(String(100))
+    google_safe_browsing = Column(Integer)
     updated_date =  Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())       
     result = relationship("Result", back_populates="url")
     #feature = relationship("Feature", uselist=False, back_populates="url")

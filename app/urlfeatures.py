@@ -8,6 +8,9 @@ import time
 import re
 import requests
 import json
+from app.constants import key
+import socket
+from pysafebrowsing import SafeBrowsing
 
 
 headers = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -24,6 +27,7 @@ class URLFeatures:
         self.domain = self.get_domain()
         self.subdomains = self.get_subdomain()
         self.scheme = self.get_scheme()
+        self.ip = self.get_ip_address()
         self.shortten_url = self.get_shorturl()
         self.ip_in_url = self.get_ip_in_url()        
 
@@ -115,6 +119,8 @@ class URLFeatures:
             # extra url info
             'hostname' : self.hostname,
             'domain' : self.domain,
+            'registrar' : self.get_domain_registrar(),
+            'ip_address' : self.ip,
             'subdomains' : json.dumps(self.subdomains) if self.subdomains else None,
             'scheme' : self.scheme,          
              # extra domain infomation
@@ -124,7 +130,8 @@ class URLFeatures:
             'domainend' : self.domain_end,
             'city' :  self.get_city(),
             'state' : self.get_state(),
-            'country' : self.get_country()
+            'country' : self.get_country(),
+            'google_safe_browsing' : self.google_safe_browsing()
          }
   
     def get_model_features(self):
@@ -165,8 +172,10 @@ class URLFeatures:
     def get_subdomain(self):
         ext = tldextract.extract(self.url)
         subd = ext.subdomain
-        subd_parts = subd.split('.')
-        return subd_parts
+        if subd:
+            subd_parts = subd.split('.')
+            return subd_parts
+        return None
     
     def get_scheme(self):
         htp = urlparse(self.url).scheme
@@ -302,31 +311,23 @@ class URLFeatures:
                     favicon_link_arr.append(favicon_link['href'])                
             return favicon_link_arr
         return None
+
+    def get_ip_address(self):
+        IPAddr = socket.gethostbyname(self.hostname)
+        if IPAddr:
+            return IPAddr
+        return None
+
+
+    def get_domain_registrar(self):
+        if self.w and 'registrar' in self.w:
+            if self.w.registrar is None:
+                return None
+            else:
+                return self.w.registrar
+        return None
+
     
-    def get_creation_date(self):
-        if self.w and 'creation_date' in self.w:
-            creation_date = self.w.creation_date
-            if creation_date is None:
-                creation_date = None
-            elif type(creation_date) is list:
-                creation_date = self.w.creation_date[0]
-            elif type(creation_date) is str:
-                creation_date = -1
-            return creation_date
-        return None
-
-    def get_expiration_date(self):
-        if self.w and 'expiration_date' in self.w:
-            expiration_date = self.w.expiration_date
-            if expiration_date is None:
-                expiration_date =  None
-            elif type(expiration_date) is list:
-                expiration_date = self.w.expiration_date[0]
-            elif type(expiration_date) is str:
-                expiration_date = -1
-            return expiration_date
-        return None
-
     def get_city(self):
         if self.w and 'city' in self.w:
             if self.w.city is None or self.w.city.strip().upper() in ['REDACTED FOR PRIVACY', 'DATA REDACTED']:
@@ -351,6 +352,30 @@ class URLFeatures:
                 return self.w.country
         return None
     
+    
+    def get_creation_date(self):
+        if self.w and 'creation_date' in self.w:
+            creation_date = self.w.creation_date
+            if creation_date is None:
+                creation_date = None
+            elif type(creation_date) is list:
+                creation_date = self.w.creation_date[0]
+            elif type(creation_date) is str:
+                creation_date = -1
+            return creation_date
+        return None
+
+    def get_expiration_date(self):
+        if self.w and 'expiration_date' in self.w:
+            expiration_date = self.w.expiration_date
+            if expiration_date is None:
+                expiration_date =  None
+            elif type(expiration_date) is list:
+                expiration_date = self.w.expiration_date[0]
+            elif type(expiration_date) is str:
+                expiration_date = -1
+            return expiration_date
+        return None 
         
     def get_domainage(self):
         if self.w:
@@ -380,7 +405,14 @@ class URLFeatures:
                 registration_length = abs((expiration_date - today).days)
             return registration_length
         return None
-        
+
+    def google_safe_browsing(self):
+        try:
+            s = SafeBrowsing(key)
+            r = s.lookup_urls([self.url])
+            return r[self.url].get('malicious', None)
+        except Exception as e:
+             return None       
 
     #-----------------------------------------------------------------Model Features---------------------------------------------------------------
     # 1 Get hostname length

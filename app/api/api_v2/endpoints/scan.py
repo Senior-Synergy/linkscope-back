@@ -39,6 +39,8 @@ def scan_all_ver2(request: schemas.Url_submission_list, db_session: Session = De
                             "final_url" : final_url,
                             "hostname" : extra_url_info.get('hostname'),        
                             "domain" : extra_url_info.get('domain'),
+                            "registrar" : extra_url_info.get('registrar'),
+                            "ip_address" : extra_url_info.get('ip_address'),
                             "subdomains" : extra_url_info.get('subdomains'),
                             "scheme" : extra_url_info.get('scheme'),
                                 # extra domain infomation
@@ -48,11 +50,14 @@ def scan_all_ver2(request: schemas.Url_submission_list, db_session: Session = De
                             "domainend" : extra_url_info.get('domainend'),
                             "city" : extra_url_info.get('city'), 
                             "state" : extra_url_info.get('state'),
-                            "country" :extra_url_info.get('country')})
+                            "country" :extra_url_info.get('country'),
+                            "google_safe_browsing" : extra_url_info.get('google_safe_browsing')})
         else:
             url_data = models.Url(final_url= final_url,
                             hostname = extra_url_info.get('hostname'),        
                             domain = extra_url_info.get('domain'),
+                            registrar = extra_url_info.get('registrar'),
+                            ip_address = extra_url_info.get('ip_address'),
                             subdomains = extra_url_info.get('subdomains'),
                             scheme = extra_url_info.get('scheme'),
                                 # extra domain infomation
@@ -62,7 +67,8 @@ def scan_all_ver2(request: schemas.Url_submission_list, db_session: Session = De
                             domainend = extra_url_info.get('domainend'),
                             city = extra_url_info.get('city'), 
                             state = extra_url_info.get('state'),
-                            country =extra_url_info.get('country'))
+                            country =extra_url_info.get('country'),
+                            google_safe_browsing = extra_url_info.get('google_safe_browsing'))
             url_to_insert.append(url_data)
 
         # Create feature_data and result_data ,and append to list for bulk insert
