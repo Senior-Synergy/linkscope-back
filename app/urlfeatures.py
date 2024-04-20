@@ -8,6 +8,9 @@ import time
 import re
 import requests
 import json
+from app.constants import key
+import socket
+from pysafebrowsing import SafeBrowsing
 
 
 headers = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -24,6 +27,7 @@ class URLFeatures:
         self.domain = self.get_domain()
         self.subdomains = self.get_subdomain()
         self.scheme = self.get_scheme()
+        self.ip = self.get_ip_address()
         self.shortten_url = self.get_shorturl()
         self.ip_in_url = self.get_ip_in_url()        
 
@@ -74,57 +78,60 @@ class URLFeatures:
         
        #------------- Data Dictionary---------------------------------
         self.features = { 
-            'domainlength' : self.getdomainlength(), #1 
-            'www' : self.contains_www(),  #2                      
-            'https' : self.httpSecure() , #3
-            'short_url' : self.short_url(), #4
-            'ip' : self.having_ip_address() , #5
-            'dash_count' : self.count_dash_symbols(), #6 
-            'equal_count' : self.count_equal_symbols(), #7
-            'dot_count' : self.count_dot_symbols(), #8
-            'underscore_count' : self.count_underscore_symbols(), #9
-            'slash_count' : self.count_slash_symbols(), #10
-            'digit_count' : self.digit_count(), #11
-            'pc_emptylink' : self.calpc_emptylinks(), #12
-            'pc_extlink' : self.calpc_extlinks(), #13
-            'pc_requrl'  : self.calpc_requrl(), #14
-            'zerolink' : self.haszerolinksinbody(), #15
-            'ext_favicon' : self.has_external_favicon(), #16
-            'sfh' :  self.sfh(), #17
-            'redirection' : self.redirection(), #18
-            'domainend' : self.domainEnd() if self.w else -1, #19
+            'domainlength' : self.getdomainlength(), 
+            'www' : self.contains_www(),                       
+            'https' : self.httpSecure() ,
+            'short_url' : self.short_url(), 
+            'ip' : self.having_ip_address() , 
+            'dash_count' : self.count_dash_symbols() , 
+            'equal_count' : self.count_equal_symbols(), 
+            'dot_count' : self.count_dot_symbols(), 
+            'underscore_count' : self.count_underscore_symbols(), 
+            'slash_count' : self.count_slash_symbols(),
+            'digit_count' : self.digit_count(),
+            'pc_emptylink' : self.calpc_emptylinks(), 
+            'pc_extlink' : self.calpc_extlinks(),
+            'pc_requrl'  : self.calpc_requrl(), 
+            'zerolink' : self.haszerolinksinbody(), 
+            'ext_favicon' : self.has_external_favicon(),
+            'sfh' :  self.sfh(), 
+            'redirection' : self.redirection() ,
+            'domainend' : self.domainEnd() if self.w else -1,
             # extra url info
             'shortten_url' : self.shortten_url,
             'ip_in_url' : self.ip_in_url,                        
             'len_empty_links' : self.len_empty_links,
 
             'external_links' : json.dumps(self.external_links) if self.external_links else None,
-            'len_external_links' : len(self.external_links),
+            'len_external_links' : len(self.external_links) if self.soup else None,
 
             'external_img_requrl' : json.dumps(self.external_img_requrl) if self.external_img_requrl else None,
             'external_audio_requrl' : json.dumps(self.external_audio_requrl) if self.external_audio_requrl else None,
             'external_embed_requrl': json.dumps(self.external_embed_requrl) if self.external_embed_requrl else None,
             'external_iframe_requrl' : json.dumps(self.external_iframe_requrl) if self.external_iframe_requrl else None,
 
-            'len_external_img_requrl' : len(self.external_img_requrl) ,
-            'len_external_audio_requrl' : len(self.external_audio_requrl),
-            'len_external_embed_requrl': len(self.external_embed_requrl),
-            'len_external_iframe_requrl' :len(self.iframe_requrl),
+            'len_external_img_requrl' : len(self.external_img_requrl) if self.soup else None ,
+            'len_external_audio_requrl' : len(self.external_audio_requrl) if self.soup else None,
+            'len_external_embed_requrl': len(self.external_embed_requrl) if self.soup else None,
+            'len_external_iframe_requrl' :len(self.iframe_requrl) if self.soup else None,
         }
         self.extra_info = {
             # extra url info
             'hostname' : self.hostname,
             'domain' : self.domain,
+            'registrar' : self.get_domain_registrar(),
+            'ip_address' : self.ip,
             'subdomains' : json.dumps(self.subdomains) if self.subdomains else None,
             'scheme' : self.scheme,          
              # extra domain infomation
-            'creation_date' : self.creation_date if self.w else None,
-            'expiration_date' : self.expiration_date if self.w else None,            
-            'domainage' : self.domain_age if self.w else None,
-            'domainend' : self.domain_end if self.w else None,
-            'city' : None if self.w is None or self.w.city is None or any(city in ['REDACTED FOR PRIVACY', 'DATA REDACTED'] for city in self.w.city) else self.w.city ,
-            'state' : None if self.w is None or self.w.state is None or any(state in ['REDACTED FOR PRIVACY', 'DATA REDACTED'] for state in self.w.state) else self.w.state,
-            'country' : None if self.w is None or self.w.country is None or  any(country in ['REDACTED FOR PRIVACY', 'DATA REDACTED'] for country in self.w.country) else self.w.country
+            'creation_date' : self.creation_date,
+            'expiration_date' : self.expiration_date,            
+            'domainage' : self.domain_age,
+            'domainend' : self.domain_end,
+            'city' :  self.get_city(),
+            'state' : self.get_state(),
+            'country' : self.get_country(),
+            'google_safe_browsing' : self.google_safe_browsing()
          }
   
     def get_model_features(self):
@@ -165,8 +172,10 @@ class URLFeatures:
     def get_subdomain(self):
         ext = tldextract.extract(self.url)
         subd = ext.subdomain
-        subd_parts = subd.split('.')
-        return subd_parts
+        if subd:
+            subd_parts = subd.split('.')
+            return subd_parts
+        return None
     
     def get_scheme(self):
         htp = urlparse(self.url).scheme
@@ -210,7 +219,8 @@ class URLFeatures:
             empty_links_count = 0
             all_links = self.all_links        
             for link in all_links:
-                if '#' == link['href'][0] or link['href'] == '' or "javascript:void(0)" in link['href'] or "./" == link['href']:
+                href = link.get('href', '') 
+                if href.startswith('#') or href == '' or "javascript:void(0)" in href or href.startswith("./"):
                     empty_links_count += 1
             return empty_links_count 
         return None
@@ -301,52 +311,108 @@ class URLFeatures:
                     favicon_link_arr.append(favicon_link['href'])                
             return favicon_link_arr
         return None
+
+    def get_ip_address(self):
+        IPAddr = socket.gethostbyname(self.hostname)
+        if IPAddr:
+            return IPAddr
+        return None
+
+
+    def get_domain_registrar(self):
+        if self.w and 'registrar' in self.w:
+            if self.w.registrar is None:
+                return None
+            else:
+                return self.w.registrar
+        return None
+
+    
+    def get_city(self):
+        if self.w and 'city' in self.w:
+            if self.w.city is None or self.w.city.strip().upper() in ['REDACTED FOR PRIVACY', 'DATA REDACTED']:
+                return None
+            else:
+                return self.w.city
+        return None
+
+    def get_state(self):
+        if self.w and 'state' in self.w:
+            if self.w.state is None or self.w.state in ['REDACTED FOR PRIVACY', 'DATA REDACTED']:
+                return None
+            else:
+                return self.w.state
+        return None
+
+    def get_country(self):
+        if self.w and 'country' in self.w:
+            if self.w.country is None or self.w.country in ['REDACTED FOR PRIVACY', 'DATA REDACTED']:
+                return None
+            else:
+                return self.w.country
+        return None
+    
     
     def get_creation_date(self):
-        creation_date = self.w.creation_date
-        if creation_date is None:
-            creation_date = None
-        elif type(creation_date) is list:
-            creation_date = self.w.creation_date[0]
-        elif type(creation_date) is str:
-            creation_date = -1
-        return creation_date       
+        if self.w and 'creation_date' in self.w:
+            creation_date = self.w.creation_date
+            if creation_date is None:
+                creation_date = None
+            elif type(creation_date) is list:
+                creation_date = self.w.creation_date[0]
+            elif type(creation_date) is str:
+                creation_date = -1
+            return creation_date
+        return None
 
     def get_expiration_date(self):
-        expiration_date = self.w.expiration_date
-        if expiration_date is None:
-            expiration_date =  None
-        elif type(expiration_date) is list:
-            expiration_date = self.w.expiration_date[0]
-        elif type(expiration_date) is str:
-            expiration_date = -1
-        return expiration_date
+        if self.w and 'expiration_date' in self.w:
+            expiration_date = self.w.expiration_date
+            if expiration_date is None:
+                expiration_date =  None
+            elif type(expiration_date) is list:
+                expiration_date = self.w.expiration_date[0]
+            elif type(expiration_date) is str:
+                expiration_date = -1
+            return expiration_date
+        return None 
         
     def get_domainage(self):
-        creation_date = self.creation_date
-        expiration_date = self.expiration_date
-        ageofdomain = 0
-        if (expiration_date is None) or (creation_date is None):
-            return 1
-        elif creation_date == -1 or expiration_date == -1:
-            return -1
-        else:
-            ageofdomain = abs((expiration_date - creation_date).days)      
-        return ageofdomain
+        if self.w:
+            creation_date = self.creation_date
+            expiration_date = self.expiration_date
+            ageofdomain = 0
+            if (expiration_date is None) or (creation_date is None):
+                return 1
+            elif creation_date == -1 or expiration_date == -1:
+                return -1
+            else:
+                ageofdomain = abs((expiration_date - creation_date).days)      
+            return ageofdomain
+        return None
 
     def get_domainend(self):
-        expiration_date = self.expiration_date
-        today = time.strftime('%Y-%m-%d')
-        today = datetime.strptime(today, '%Y-%m-%d')
-        registration_length = 0
-        if expiration_date is None:
-            return 1 
-        elif expiration_date == -1:
-            return -1 
-        else:
-            registration_length = abs((expiration_date - today).days)
-        return registration_length
-    
+        if self.w:
+            expiration_date = self.expiration_date
+            today = time.strftime('%Y-%m-%d')
+            today = datetime.strptime(today, '%Y-%m-%d')
+            registration_length = 0
+            if expiration_date is None:
+                return 1 
+            elif expiration_date == -1:
+                return -1 
+            else:
+                registration_length = abs((expiration_date - today).days)
+            return registration_length
+        return None
+
+    def google_safe_browsing(self):
+        try:
+            s = SafeBrowsing(key)
+            r = s.lookup_urls([self.url])
+            return r[self.url].get('malicious', None)
+        except Exception as e:
+             return None       
 
     #-----------------------------------------------------------------Model Features---------------------------------------------------------------
     # 1 Get hostname length

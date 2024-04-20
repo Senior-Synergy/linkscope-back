@@ -16,6 +16,9 @@ class UrlBase(BaseModel):
     domain: str
     subdomains: Optional[list[str]]
     scheme: Optional[str]
+    registrar : Optional[str]
+    ip_address : Optional[str]
+
 
     # ---------------------------------
 
@@ -26,6 +29,7 @@ class UrlBase(BaseModel):
     city: Optional[str]
     state: Optional[str]
     country: Optional[str]
+    google_safe_browsing : bool
 
     @validator('subdomains', pre=True)
     @classmethod
@@ -33,6 +37,16 @@ class UrlBase(BaseModel):
         if value is None:
             return None
         return json.loads(value)
+    
+    @validator('google_safe_browsing', pre=True)
+    @classmethod
+    def cast_to_bool(cls, value: bool):
+        if value == False:
+            return False
+        elif value == True:
+            return True
+        else:
+            return None
 
 
 class ResultBase(BaseModel):
@@ -42,6 +56,8 @@ class ResultBase(BaseModel):
     feature_id: Optional[int]
     submitted_url: str
     phish_prob: float
+    verdict : str
+    trust_score : float
     datetime_created: datetime
 
     @validator('phish_prob', pre=True)

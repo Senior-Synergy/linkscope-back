@@ -25,6 +25,7 @@ class Url(BaseModel):
     city : Optional[str]
     state : Optional[str]
     country : Optional[str]
+    google_safe_browsing : Optional[int]
  
     @field_validator('subdomains')
     @classmethod
