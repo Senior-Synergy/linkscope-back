@@ -56,6 +56,8 @@ class ResultBase(BaseModel):
     feature_id: Optional[int]
     submitted_url: str
     phish_prob: float
+    verdict : str
+    trust_score : float
     datetime_created: datetime
 
     @validator('phish_prob', pre=True)

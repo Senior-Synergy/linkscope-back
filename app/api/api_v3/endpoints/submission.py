@@ -114,7 +114,9 @@ async def scan_urls(request: schemas.SubmissionRequest, db: Session = Depends(ge
                                 len_external_iframe_requrl = model_features.get('len_external_iframe_requrl')                                                       
                                 ) 
         result_data = models.Result(submitted_url=url,
-                                    phish_prob=scan_obj.get_phish_prob(),
+                                    phish_prob=scan_obj.phish_prob,
+                                    verdict = scan_obj.verdict,
+                                    trust_score = scan_obj.trust_score,
                                     # is_phishing= scan_obj.get_isPhish(),
                                     submission=submission_data,
                                     url=url_data,
