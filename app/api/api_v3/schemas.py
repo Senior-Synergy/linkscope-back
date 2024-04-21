@@ -1,5 +1,4 @@
 from pydantic import BaseModel, validator
-from typing import Optional
 from datetime import datetime
 import json
 
@@ -14,22 +13,21 @@ class UrlBase(BaseModel):
     final_url: str
     hostname: str
     domain: str
-    subdomains: Optional[list[str]]
-    scheme: Optional[str]
-    registrar : Optional[str]
-    ip_address : Optional[str]
-
+    subdomains: list[str] | None
+    scheme: str | None
+    registrar: str | None
+    ip_address: str | None
 
     # ---------------------------------
 
-    creation_date: Optional[datetime]
-    expiration_date: Optional[datetime]
-    domainage: Optional[int]
-    domainend: Optional[int]
-    city: Optional[str]
-    state: Optional[str]
-    country: Optional[str]
-    google_safe_browsing : bool | None
+    creation_date: datetime | None
+    expiration_date: datetime | None
+    domainage: int | None
+    domainend: int | None
+    city: str | None
+    state: str | None
+    country: str | None
+    google_safe_browsing: bool | None
 
     @validator('subdomains', pre=True)
     @classmethod
@@ -37,7 +35,7 @@ class UrlBase(BaseModel):
         if value is None:
             return None
         return json.loads(value)
-    
+
     @validator('google_safe_browsing', pre=True)
     @classmethod
     def cast_to_bool(cls, value: bool):
@@ -51,13 +49,13 @@ class UrlBase(BaseModel):
 
 class ResultBase(BaseModel):
     result_id: int
-    submission_id: Optional[int]
-    url_id: Optional[int]
-    feature_id: Optional[int]
+    submission_id: int | None
+    url_id: int | None
+    feature_id: int | None
     submitted_url: str
     phish_prob: float
-    verdict : str | None
-    trust_score : float | None
+    verdict: str | None
+    trust_score: float | None
     datetime_created: datetime
 
     @validator('phish_prob', pre=True)
@@ -70,41 +68,41 @@ class ResultBase(BaseModel):
 
 class FeatureBase(BaseModel):
     feature_id: int
-    domainlength: int  # 1
-    www: bool  # 2
-    https: bool  # 3
-    short_url: bool  # 4
-    ip: bool  # 5
-    dash_count: int  # 6
-    equal_count: int  # 7
-    dot_count: int  # 8
-    underscore_count: int  # 9
-    slash_count: int  # 10
-    digit_count: int  # 11
-    pc_emptylink: float  # 12
-    pc_extlink: float  # 13
-    pc_requrl: float  # 14
-    zerolink: bool  # 15
-    ext_favicon: bool  # 16
-    sfh: bool  # 17
-    redirection: bool  # 18
-    domainend: bool  # 19
+    domainlength: int | None   # 1
+    www: bool | None   # 2
+    https: bool | None   # 3
+    short_url: bool | None   # 4
+    ip: bool | None   # 5
+    dash_count: int | None   # 6
+    equal_count: int | None   # 7
+    dot_count: int | None   # 8
+    underscore_count: int | None   # 9
+    slash_count: int | None   # 10
+    digit_count: int | None   # 11
+    pc_emptylink: float | None  # 12
+    pc_extlink: float | None   # 13
+    pc_requrl: float | None   # 14
+    zerolink: bool | None   # 15
+    ext_favicon: bool | None   # 16
+    sfh: bool | None   # 17
+    redirection: bool | None   # 18
+    domainend: bool | None   # 19
 
     # ---------------------------------
 
-    shortten_url: Optional[str]
-    ip_in_url: Optional[str]
-    len_empty_links: int
-    len_external_links: int
-    external_links: Optional[list[str]] = None
-    external_img_requrl: Optional[list[str]] = None
-    external_audio_requrl: Optional[list[str]] = None
-    external_embed_requrl: Optional[list[str]] = None
-    external_iframe_requrl: Optional[list[str]] = None
-    len_external_img_requrl: int
-    len_external_audio_requrl: int
-    len_external_embed_requrl: int
-    len_external_iframe_requrl: int
+    shortten_url: str | None
+    ip_in_url: str | None
+    len_empty_links: int | None
+    len_external_links: int | None
+    external_links: list[str] | None
+    external_img_requrl: list[str] | None
+    external_audio_requrl: list[str] | None
+    external_embed_requrl: list[str] | None
+    external_iframe_requrl: list[str] | None
+    len_external_img_requrl: int | None
+    len_external_audio_requrl: int | None
+    len_external_embed_requrl: int | None
+    len_external_iframe_requrl: int | None
 
     @validator('www', 'https', 'short_url', 'ip',
                'zerolink', 'ext_favicon',
@@ -137,14 +135,14 @@ class FeatureBase(BaseModel):
 
 
 class Url(UrlBase):
-    result: Optional[ResultBase] = None
+    result: ResultBase | None = None
 
     class Config:
         from_attributes = True
 
 
 class UrlExtended(UrlBase):
-    results: Optional[ResultBase | list[ResultBase]] = []
+    results: ResultBase | list[ResultBase] | None = []
     similar_urls: list[UrlBase]
 
     class Config:
@@ -152,22 +150,22 @@ class UrlExtended(UrlBase):
 
 
 class Result(ResultBase):
-    url: Optional[UrlBase]
+    url: UrlBase | None
 
     class Config:
         from_attributes = True
 
 
 class ResultExtended(ResultBase):
-    url: Optional[UrlBase]
-    feature: Optional[FeatureBase]
+    url: UrlBase | None
+    feature: FeatureBase | None
 
     class Config:
         from_attributes = True
 
 
 class Submission(SubmissionBase):
-    results: Optional[list[Result]] = []
+    results: list[Result] | None = []
 
     class Config:
         from_attributes = True
@@ -185,13 +183,13 @@ class UrlSearchRequest(BaseModel):
     keyword: str
     page: int = 1
     page_size: int = 10
-    creation_date_start: Optional[datetime]
-    creation_date_end: Optional[datetime]
-    phish_prob_min: Optional[float]
-    phish_prob_max: Optional[float]
-    country: Optional[str]
-    sort_by: Optional[str]
-    sort_direction: Optional[str]
+    creation_date_start: datetime | None
+    creation_date_end: datetime | None
+    phish_prob_min: float | None
+    phish_prob_max: float | None
+    country: str | None
+    sort_by: str | None
+    sort_direction: str | None
 
 
 class UrlSearchResponse(BaseModel):

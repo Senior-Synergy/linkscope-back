@@ -1,31 +1,36 @@
 from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
-from sqlalchemy import update, asc, desc, and_, or_
+from sqlalchemy import asc, desc, and_, or_
 from Levenshtein import distance
+from datetime import datetime
 
 from typing import Optional
-from math import ceil
+
+import logging
 
 from app.models import Url, Feature, Result, Submission
-from fastapi import HTTPException
-from app.urlresult import *
+from fastapi import HTTPException, status
+
+logger = logging.getLogger(__name__)
 
 
-def retrieve_url_with_results(url_id: int, session: Session, latest: bool, threshold: int = 5):
+def retrieve_url_extended(url_id: int, session: Session, latest: bool, threshold: int = 5):
     try:
         url = session.query(Url).filter(Url.url_id == url_id).first()
 
         if not url:
-            raise HTTPException(status_code=404, detail="URL not found")
+            logger.error(f"URL data for ID '{url_id}' not found")
 
-        base_url = url.final_url
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"URL with ID '{url_id}' not found"
+            )
 
-        # Query for all URLs
         all_urls = session.query(Url).all()
 
         # Calculate Levenshtein distance for each URL
         similarity_scores = [(other_url, distance(
-            base_url, other_url.final_url)) for other_url in all_urls]
+            url.final_url, other_url.final_url)) for other_url in all_urls]
 
         # Sort by similarity scores
         sorted_similarity_scores = sorted(
@@ -35,8 +40,8 @@ def retrieve_url_with_results(url_id: int, session: Session, latest: bool, thres
         similar_urls_list = [other_url for other_url,
                              score in sorted_similarity_scores if score <= threshold and other_url.url_id != url_id]
 
-        if len(similar_urls_list) > 5:
-            similar_urls_list = similar_urls_list[:5]
+        # Limit the number of similar URLs to 5
+        similar_urls_list = similar_urls_list[:5]
 
         if not latest:
             results = session.query(Result).filter(Result.url_id == url_id).order_by(
@@ -44,8 +49,8 @@ def retrieve_url_with_results(url_id: int, session: Session, latest: bool, thres
 
             return {
                 **url.__dict__,
-                "results": [result for result in results],
-                "similar_urls": [url for url in similar_urls_list]
+                "results": [result.__dict__ for result in results],
+                "similar_urls": [url.__dict__ for url in similar_urls_list]
             }
         else:
             result = session.query(Result).filter(Result.url_id == url_id).order_by(
@@ -53,10 +58,12 @@ def retrieve_url_with_results(url_id: int, session: Session, latest: bool, thres
 
             return {
                 **url.__dict__,
-                "result": result,
+                "result": result.__dict__ if result else None,
             }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error occurred while retrieving URL info: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve URL info")
 
 
 def retrieve_all_urls(session: Session):
@@ -81,7 +88,7 @@ def retrieve_all_urls(session: Session):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def retrieve_urls(
+def retrieve_results(
     session: Session,
     keyword: str,
     page: int,
@@ -133,8 +140,6 @@ def retrieve_urls(
                 raise ValueError(f"Invalid sort column '{sort_by}'")
 
         total_count = query.count()
-        total_pages = ceil(total_count / page_size)
-
         fetched_data = query.offset(offset).limit(page_size).all()
 
         # Convert fetched data into a list of dictionaries
@@ -149,58 +154,24 @@ def retrieve_urls(
                 # Add other attributes as needed
             })
 
-        # formatted_data = {}
-        # for url, result in fetched_data:
-        #     url_dict = url.__dict__
-        #     result_dict = result.__dict__
-        #     url_id = url_dict['url_id']
-
-        #     if url_id not in formatted_data:
-        #         formatted_data[url_id] = {
-        #             **url_dict,
-        #             "results": [result_dict]
-        #         }
-        #     else:
-        #         formatted_data[url_id]["results"].append(result_dict)
-
         return {"total_count": total_count, "results": formatted_data}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-def retrieve_url_results(session: Session, url_id: int, latest_only: bool):
-    try:
-        results = []
-        results_query = session.query(Result).\
-            filter(Result.url_id == url_id).\
-            order_by(desc(Result.datetime_created))
-
-        if latest_only:
-            results = results_query.first()
-        else:
-            results = results_query.all()
-
-        return results
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-def retrieve_features(session: Session, feature_id: int):
-    try:
-        feature_data = session.query(Feature).filter(
-            Feature.feature_id == feature_id).first()
-        return feature_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 def retrieve_result_with_features(result_id: int, session: Session):
     try:
-        result_data = session.query(Result).filter(
-            Result.result_id == result_id).first()
+        result_data = session.query(Result).\
+            filter(Result.result_id == result_id).\
+            first()
 
-        feature_data = session.query(Feature).filter(
-            Feature.feature_id == result_data.feature_id).first()
+        if not result_data:
+            raise HTTPException(
+                status_code=404, detail="Result with 'result_id: {result_id}' not found")
+
+        feature_data = session.query(Feature).\
+            filter(Feature.feature_id == result_data.feature_id).\
+            first()
 
         url_data = session.query(Url).\
             filter(Url.url_id == result_data.url_id).\
@@ -217,16 +188,16 @@ def retrieve_result_with_features(result_id: int, session: Session):
 
 def retrieve_result_data_with_submission_id(submission_id: int, session: Session):
     try:
-        query_result = session.query(Result).filter(
+        result_data = session.query(Result).filter(
             Result.submission_id == submission_id).all()
 
-        if not query_result:
+        if not result_data:
             raise HTTPException(
-                status_code=404, detail="RESULT with 'result_id: {result_id}' not found")
+                status_code=404, detail="Result associated with 'submission_id: {submission_id}' not found")
 
         results = []
 
-        for result in query_result:
+        for result in result_data:
             feature_data = session.query(Feature).\
                 filter(Feature.feature_id == result.feature_id).\
                 first()
@@ -248,15 +219,14 @@ def retrieve_result_data_with_submission_id(submission_id: int, session: Session
 
 def retrieve_submission_data(submission_id: int, session: Session):
     try:
-        # query = session.query(Submission, Result).\
-        #     join(Result, Submission.submission_id == Result.submission_id).\
-        #     filter(Submission.submission_id == submission_id)
+        query_result = session.query(Submission,).\
+            filter(Submission.submission_id == submission_id).\
+            first()
 
-        query_submission = session.query(Submission,).\
-            filter(Submission.submission_id == submission_id)
+        if not query_result:
+            raise HTTPException(
+                status_code=404, detail="Submission with 'submission_id: {submission_id}' not found")
 
-        results = query_submission.first()
-
-        return results
+        return query_result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
