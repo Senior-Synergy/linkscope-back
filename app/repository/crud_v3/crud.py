@@ -1,6 +1,7 @@
 from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
 from sqlalchemy import update, asc, desc, and_, or_
+from Levenshtein import distance
 
 from typing import Optional
 from math import ceil
@@ -10,12 +11,32 @@ from fastapi import HTTPException
 from app.urlresult import *
 
 
-def retrieve_url_with_results(url_id: int, session: Session, latest: bool):
+def retrieve_url_with_results(url_id: int, session: Session, latest: bool, threshold: int = 5):
     try:
         url = session.query(Url).filter(Url.url_id == url_id).first()
 
         if not url:
             raise HTTPException(status_code=404, detail="URL not found")
+
+        base_url = url.final_url
+
+        # Query for all URLs
+        all_urls = session.query(Url).all()
+
+        # Calculate Levenshtein distance for each URL
+        similarity_scores = [(other_url, distance(
+            base_url, other_url.final_url)) for other_url in all_urls]
+
+        # Sort by similarity scores
+        sorted_similarity_scores = sorted(
+            similarity_scores, key=lambda x: x[1])
+
+        # Filter out URLs that are below the threshold
+        similar_urls_list = [other_url for other_url,
+                             score in sorted_similarity_scores if score <= threshold and other_url.url_id != url_id]
+
+        if len(similar_urls_list) > 5:
+            similar_urls_list = similar_urls_list[:5]
 
         if not latest:
             results = session.query(Result).filter(Result.url_id == url_id).order_by(
@@ -23,7 +44,8 @@ def retrieve_url_with_results(url_id: int, session: Session, latest: bool):
 
             return {
                 **url.__dict__,
-                "results": [result for result in results]
+                "results": [result for result in results],
+                "similar_urls": [url for url in similar_urls_list]
             }
         else:
             result = session.query(Result).filter(Result.url_id == url_id).order_by(
@@ -31,7 +53,7 @@ def retrieve_url_with_results(url_id: int, session: Session, latest: bool):
 
             return {
                 **url.__dict__,
-                "result": result
+                "result": result,
             }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

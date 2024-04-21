@@ -29,7 +29,7 @@ class UrlBase(BaseModel):
     city: Optional[str]
     state: Optional[str]
     country: Optional[str]
-    google_safe_browsing : bool
+    google_safe_browsing : bool | None
 
     @validator('subdomains', pre=True)
     @classmethod
@@ -56,8 +56,8 @@ class ResultBase(BaseModel):
     feature_id: Optional[int]
     submitted_url: str
     phish_prob: float
-    verdict : str
-    trust_score : float
+    verdict : str | None
+    trust_score : float | None
     datetime_created: datetime
 
     @validator('phish_prob', pre=True)
@@ -145,6 +145,7 @@ class Url(UrlBase):
 
 class UrlExtended(UrlBase):
     results: Optional[ResultBase | list[ResultBase]] = []
+    similar_urls: list[UrlBase]
 
     class Config:
         from_attributes = True
