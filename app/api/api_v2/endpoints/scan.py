@@ -25,7 +25,7 @@ def scan_all_ver2(request: schemas.Url_submission_list, db_session: Session = De
 
     for url in urls:
         # Get URL scan_obj
-        scan_obj = URLresult(url, model)
+        scan_obj = URLResult(url, model)
         final_url= scan_obj.get_final_url()
         model_features = scan_obj.model_features
         extra_url_info = scan_obj.extra_info

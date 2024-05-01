@@ -31,6 +31,3 @@ feature_names2 = [ 'domainlength',
                 'redirection', # 27
                 'domainage', #28
                 'domainend' ] # 29
-
-
-key = 'AIzaSyAv25BTWJyPt_tASn6pucYSlxDUJPGlFGM'

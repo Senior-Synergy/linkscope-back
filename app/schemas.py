@@ -1,6 +1,5 @@
 # Pydantic model
-from typing import Union, List, Optional
-from typing_extensions import Annotated
+from typing import List, Optional
 from pydantic import BaseModel, field_validator
 from datetime import datetime
 import json
@@ -12,7 +11,6 @@ class Url_submission_list(BaseModel):
 
 class Url(BaseModel):
     final_url: str
-    hostname : dict
     hostname : str
     domain: str
     subdomains : Optional[str]

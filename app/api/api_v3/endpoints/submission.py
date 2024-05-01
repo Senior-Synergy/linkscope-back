@@ -1,39 +1,50 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
+import json
 from app import models
 from app.database import get_db
 
 from app.api.api_v3 import schemas
-from app.api.api_v3.schemas import SubmissionResponse
+from app.api.api_v3.schemas import SubmissionResponse, SubmissionCreateResponse
 
 from app.repository.crud_v3 import url_crud, submission_crud, result_crud
 from app.urlresult import *
-from app.utils import load_model
+from app.utils import load_model, load_joblib_model
 
 router = APIRouter()
 
 
 @router.get("/")
-async def read_root():
+def read_root():
     return {"message": "Hello, From Backend's /scan!"}
 
 
-@router.post("/create", response_model=SubmissionResponse, status_code=200)
-async def scan_urls(request: schemas.SubmissionRequest, db: Session = Depends(get_db)):
+@router.post("/create", response_model=SubmissionCreateResponse, status_code=200)
+def create_submission_route(db: Session = Depends(get_db)):
+    # create new submission
+    submission_id = submission_crud.create_submission(db)
+
+    return {"submission_id": submission_id}
+
+
+@router.post("/create-bulk", response_model=SubmissionResponse, status_code=200)
+def create_submission_result_in_bulk_route(request: schemas.SubmissionRequest, db: Session = Depends(get_db)):
 
     url_to_insert, feature_to_insert, result_to_insert, url_obj_to_update = [], [], [], []
     urls = request.urls
-    model = load_model("data/model_compressed.gzip")
 
     # Create submission_data
     submission_data = models.Submission()
 
     for url in urls:
         # Get URL scan_obj
-        scan_obj = URLresult(url, model)
-        final_url = scan_obj.get_final_url()
-        model_features = scan_obj.model_features
-        extra_url_info = scan_obj.extra_info
+        feature = URLFeatures(url)
+        result = URLResult(feature)
+
+        final_url = result.final_url
+        model_features = feature.get_model_features()
+        extra_url_info = feature.get_extra_url_info()
+        extra_features = feature.get_extra_features()
 
         # Create url_data and append to list for bulk insert/update
         # Search if there is final_url in db, if exists => update, else => insert
@@ -113,39 +124,37 @@ async def scan_urls(request: schemas.SubmissionRequest, db: Session = Depends(ge
                                           'redirection'),  # 18
                                       domainend=model_features.get(
                                           'domainend'),  # 19
-
-                                      shortten_url=model_features.get(
+                                      # --------------------------------------------------------
+                                      shortten_url=extra_features.get(
                                           'shortten_url'),
-                                      ip_in_url=model_features.get(
+                                      ip_in_url=extra_features.get(
                                           'ip_in_url'),
-                                      len_empty_links=model_features.get(
-                                          'len_empty_links'),
-                                      external_links=model_features.get(
-                                          'external_links'),
-                                      len_external_links=model_features.get(
+                                      empty_links_count=extra_features.get(
+                                          'empty_links_count'),
+                                      external_links=json.dumps(
+                                          extra_features.get('external_links')),
+                                      external_img_requrl=json.dumps(
+                                          extra_features.get('external_img_requrl')),
+                                      external_audio_requrl=json.dumps(
+                                          extra_features.get('external_audio_requrl')),
+                                      external_embed_requrl=json.dumps(
+                                          extra_features.get('external_embed_requrl')),
+                                      external_iframe_requrl=json.dumps(
+                                          extra_features.get('external_iframe_requrl')),
+                                      len_external_links=extra_features.get(
                                           'len_external_links'),
-                                      external_img_requrl=model_features.get(
-                                          'external_img_requrl'),
-                                      external_audio_requrl=model_features.get(
-                                          'external_audio_requrl'),
-                                      external_embed_requrl=model_features.get(
-                                          'external_embed_requrl'),
-                                      external_iframe_requrl=model_features.get(
-                                          'external_iframe_requrl'),
-                                      len_external_img_requrl=model_features.get(
+                                      len_external_img_requrl=extra_features.get(
                                           'len_external_img_requrl'),
-                                      len_external_audio_requrl=model_features.get(
+                                      len_external_audio_requrl=extra_features.get(
                                           'len_external_audio_requrl'),
-                                      len_external_embed_requrl=model_features.get(
+                                      len_external_embed_requrl=extra_features.get(
                                           'len_external_embed_requrl'),
-                                      len_external_iframe_requrl=model_features.get(
-                                          'len_external_iframe_requrl')
-                                      )
+                                      len_external_iframe_requrl=extra_features.get('len_external_iframe_requrl'))
+
         result_data = models.Result(submitted_url=url,
-                                    phish_prob=scan_obj.phish_prob,
-                                    verdict=scan_obj.verdict,
-                                    trust_score=scan_obj.trust_score,
-                                    # is_phishing= scan_obj.get_isPhish(),
+                                    phish_prob=result.phish_prob,
+                                    verdict=result.verdict,
+                                    trust_score=result.trust_score,
                                     submission=submission_data,
                                     url=url_data,
                                     feature=feature_data
@@ -158,17 +167,17 @@ async def scan_urls(request: schemas.SubmissionRequest, db: Session = Depends(ge
 
     # Check if url_obj_to_update is not an empty list
     if url_obj_to_update:
-        url_crud.update_url_data(url_obj_to_update, db)
+        url_crud.update_url_bulk(url_obj_to_update, db)
 
     # Bulk insert
-    submission_id = submission_crud.create_submission(
+    submission_id = submission_crud.create_submission_bulk(
         submission_data, url_to_insert, feature_to_insert, result_to_insert, db)
 
     return {"submission_id": submission_id}
 
 
 @router.get("/{submission_id}", response_model=schemas.Submission, status_code=200)
-async def get_submission_result(submission_id: int, db: Session = Depends(get_db)):
+def get_submission_result(submission_id: int, db: Session = Depends(get_db)):
     submission_data = submission_crud.retrieve_submission_info(
         submission_id, db)
 

@@ -9,12 +9,12 @@ router = APIRouter()
 
 
 @router.get("/")
-async def read_root():
+def read_root():
     return {"message": "Hello, From Backend's /url!"}
 
 
 @router.get("/url-info/{url_id}", response_model=schemas.UrlExtended, status_code=200)
-async def get_url_data_with_results(url_id: int, db: Session = Depends(get_db)):
+def get_url_data_with_results(url_id: int, db: Session = Depends(get_db)):
     url = url_crud.retrieve_url_by_url_id(url_id, db)
 
     if not url:
@@ -35,7 +35,7 @@ async def get_url_data_with_results(url_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/url-info/latest/{url_id}", response_model=schemas.Url, status_code=200)
-async def get_url_data_with_latest_result_only(url_id: int, db: Session = Depends(get_db)):
+def get_url_data_with_latest_result_only(url_id: int, db: Session = Depends(get_db)):
     url = url_crud.retrieve_url_by_url_id(url_id, db)
 
     if not url:
@@ -53,7 +53,7 @@ async def get_url_data_with_latest_result_only(url_id: int, db: Session = Depend
 
 
 @router.get("/all", response_model=list[schemas.Url], status_code=200)
-async def get_all_urls(db: Session = Depends(get_db)):
+def get_all_urls(db: Session = Depends(get_db)):
     url_list_data = url_crud.retrieve_all_urls(db)
 
     urls = []

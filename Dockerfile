@@ -1,8 +1,7 @@
 FROM public.ecr.aws/lambda/python:3.11
 
 COPY requirements.txt ${LAMBDA_TASK_ROOT}
-COPY config.json ${LAMBDA_TASK_ROOT}
-COPY data/model_compressed.gzip ${LAMBDA_TASK_ROOT}/data/
+COPY data/model.joblib ${LAMBDA_TASK_ROOT}/data/
 
 RUN pip install -r requirements.txt
 

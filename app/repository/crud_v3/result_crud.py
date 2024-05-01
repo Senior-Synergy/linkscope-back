@@ -4,10 +4,22 @@ from sqlalchemy import or_, asc, desc
 from datetime import datetime
 from typing import Optional
 
-from app.models import Result, Url, Feature
+from app.models import Result, Url
 
 
-def retrieve_latest_result_by_url_id(url_id: int, session: Session):
+def create_result(result: Result,  session: Session):
+    try:
+        session.add(result)
+        session.commit()
+        session.refresh(result)
+
+        return result
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def retrieve_latest_result_by_url_id(url_id, session: Session):
     try:
         result_data = session.query(Result).\
             filter(Result.url_id == url_id).\
@@ -18,7 +30,7 @@ def retrieve_latest_result_by_url_id(url_id: int, session: Session):
             status_code=500, detail="Failed to retrieve result by URL ID")
 
 
-def retrieve_all_results_by_url_id(url_id: int, session: Session):
+def retrieve_all_results_by_url_id(url_id, session: Session):
     try:
         result_data = session.query(Result).\
             filter(Result.url_id == url_id).\
@@ -29,7 +41,7 @@ def retrieve_all_results_by_url_id(url_id: int, session: Session):
             status_code=500, detail="Failed to retrieve result by URL ID")
 
 
-def retrieve_results_by_submission_id(submission_id: int, session: Session):
+def retrieve_results_by_submission_id(submission_id, session: Session):
     try:
         result_data = session.query(Result).\
             filter(Result.submission_id == submission_id).\
@@ -43,8 +55,8 @@ def retrieve_results_by_submission_id(submission_id: int, session: Session):
 def retrieve_filtered_paginated_results(
     session: Session,
     keyword: str,
-    page: int,
-    page_size: int,
+    page,
+    page_size,
     creation_date_start: Optional[datetime] = None,
     creation_date_end: Optional[datetime] = None,
     phish_prob_min: Optional[float] = None,
@@ -106,7 +118,7 @@ def retrieve_filtered_paginated_results(
             status_code=500, detail="Failed to retrieve results")
 
 
-def retrieve_result(result_id: int, session: Session):
+def retrieve_result(result_id, session: Session):
     try:
         result_data = session.query(Result).\
             filter(Result.result_id == result_id).\

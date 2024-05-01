@@ -11,8 +11,8 @@ class SubmissionBase(BaseModel):
 class UrlBase(BaseModel):
     url_id: int
     final_url: str
-    hostname: str
-    domain: str
+    hostname: str | None
+    domain: str | None
     subdomains: list[str] | None
     scheme: str | None
     registrar: str | None
@@ -92,13 +92,13 @@ class FeatureBase(BaseModel):
 
     shortten_url: str | None
     ip_in_url: str | None
-    len_empty_links: int | None
-    len_external_links: int | None
+    empty_links_count: int | None
     external_links: list[str] | None
     external_img_requrl: list[str] | None
     external_audio_requrl: list[str] | None
     external_embed_requrl: list[str] | None
     external_iframe_requrl: list[str] | None
+    len_external_links: int | None
     len_external_img_requrl: int | None
     len_external_audio_requrl: int | None
     len_external_embed_requrl: int | None
@@ -164,6 +164,15 @@ class ResultExtended(ResultBase):
         from_attributes = True
 
 
+class ResultCreateRequest(BaseModel):
+    submission_id: int
+    url: str
+
+
+class ResultCreateResponse(BaseModel):
+    result_id: int
+
+
 class Submission(SubmissionBase):
     results: list[Result] | None = []
 
@@ -172,6 +181,10 @@ class Submission(SubmissionBase):
 
 
 class SubmissionResponse(BaseModel):
+    submission_id: int
+
+
+class SubmissionCreateResponse(BaseModel):
     submission_id: int
 
 

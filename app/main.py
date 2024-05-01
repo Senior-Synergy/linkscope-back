@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import models
 from app.database import engine
 from mangum import Mangum
+import joblib
 
 from app.api.api_v3.api import router as router_v3
 from app.api.api_v2.api import router as router_v2
