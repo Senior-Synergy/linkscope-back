@@ -75,7 +75,7 @@ def create_submission_result_in_bulk_route(request: schemas.SubmissionRequest, d
                                   domain=extra_url_info.get('domain'),
                                   registrar=extra_url_info.get('registrar'),
                                   ip_address=extra_url_info.get('ip_address'),
-                                  subdomains=extra_url_info.get('subdomains'),
+                                  subdomains=json.dumps(extra_url_info.get('subdomains')),
                                   scheme=extra_url_info.get('scheme'),
                                   # extra domain infomation
                                   creation_date=extra_url_info.get(
