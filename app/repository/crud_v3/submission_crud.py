@@ -11,7 +11,7 @@ def create_submission_bulk(submission_data: Submission, url_objects: list[Url], 
         session.add_all(result_objects)
         session.commit()
 
-        return submission_data.submission_id
+        return submission_data
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))

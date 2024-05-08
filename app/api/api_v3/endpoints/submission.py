@@ -14,12 +14,7 @@ from app.utils import load_model, load_joblib_model
 router = APIRouter()
 
 
-@router.get("/")
-def read_root():
-    return {"message": "Hello, From Backend's /scan!"}
-
-
-@router.post("/create", response_model=SubmissionCreateResponse, status_code=200)
+@router.get("/create", response_model=SubmissionCreateResponse, status_code=200)
 def create_submission_route(db: Session = Depends(get_db)):
     # create new submission
     submission_id = submission_crud.create_submission(db)
@@ -27,7 +22,7 @@ def create_submission_route(db: Session = Depends(get_db)):
     return {"submission_id": submission_id}
 
 
-@router.post("/create-bulk", response_model=SubmissionResponse, status_code=200)
+@router.post("/create/bulk", response_model=SubmissionResponse, status_code=200)
 def create_submission_result_in_bulk_route(request: schemas.SubmissionRequest, db: Session = Depends(get_db)):
 
     url_to_insert, feature_to_insert, result_to_insert, url_obj_to_update = [], [], [], []
@@ -75,7 +70,8 @@ def create_submission_result_in_bulk_route(request: schemas.SubmissionRequest, d
                                   domain=extra_url_info.get('domain'),
                                   registrar=extra_url_info.get('registrar'),
                                   ip_address=extra_url_info.get('ip_address'),
-                                  subdomains=json.dumps(extra_url_info.get('subdomains')),
+                                  subdomains=json.dumps(
+                                      extra_url_info.get('subdomains')),
                                   scheme=extra_url_info.get('scheme'),
                                   # extra domain infomation
                                   creation_date=extra_url_info.get(
@@ -170,13 +166,13 @@ def create_submission_result_in_bulk_route(request: schemas.SubmissionRequest, d
         url_crud.update_url_bulk(url_obj_to_update, db)
 
     # Bulk insert
-    submission_id = submission_crud.create_submission_bulk(
+    submission_obj = submission_crud.create_submission_bulk(
         submission_data, url_to_insert, feature_to_insert, result_to_insert, db)
 
-    return {"submission_id": submission_id}
+    return {"submission_id": submission_obj.submission_id}
 
 
-@router.get("/{submission_id}", response_model=schemas.Submission, status_code=200)
+@router.get("/retrieve/{submission_id}", response_model=schemas.Submission, status_code=200)
 def get_submission_result(submission_id: int, db: Session = Depends(get_db)):
     submission_data = submission_crud.retrieve_submission_info(
         submission_id, db)
