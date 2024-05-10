@@ -33,7 +33,7 @@ class URLResult:
         self.phish_prob = float(model.predict_proba(feature_df)[0, 1])
 
         # Post-processing
-        self.google_malicious_flag = feature.google_safe_browsing()
+        self.google_malicious_flag = feature.get_google_is_malicious()
         self.phish_prob_mod = self.get_phish_prob_mod()
         self.verdict = self.get_verdict()
         self.trust_score = self.get_trust_score()

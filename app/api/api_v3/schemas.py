@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, computed_field
 from datetime import datetime
 import json
 
@@ -56,8 +56,7 @@ class ResultBase(BaseModel):
     phish_prob: float
     phish_prob_mod : float
     #verdict: str | None
-    #trust_score: float | None
-    datetime_created: datetime
+    datetime_created: datetime 
 
     @validator('phish_prob','phish_prob_mod', pre=True)
     @classmethod
@@ -65,6 +64,18 @@ class ResultBase(BaseModel):
         if isinstance(value, float):
             return round(value*100, 2)
         return value
+    
+    @computed_field
+    @property
+    def trust_score(self) -> float:
+        safe_prob = 1 -(self.phish_prob_mod/100) 
+        score = (safe_prob) * 5
+        print(self.phish_prob_mod)
+        print()
+        print(safe_prob)
+        return round(score, 2)
+    
+    
 
 
 class FeatureBase(BaseModel):
