@@ -279,8 +279,8 @@ def get_result_with_complete_data(result_id: int, db: Session = Depends(get_db))
     }
 
 
-@ router.post("/result-list/search", response_model=schemas.UrlSearchResponse, status_code=200)
-def search_results_by_keyword(request: schemas.UrlSearchRequest, db: Session = Depends(get_db)):
+@ router.post("/result-list/search", response_model=schemas.ResultSearchResponse, status_code=200)
+def search_results_by_keyword(request: schemas.ResultSearchRequest, db: Session = Depends(get_db)):
     search_results = result_crud.retrieve_filtered_paginated_results(
         db,
         request.keyword,

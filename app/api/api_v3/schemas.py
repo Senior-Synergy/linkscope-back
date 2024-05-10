@@ -192,6 +192,24 @@ class SubmissionRequest(BaseModel):
     urls: list[str]
 
 
+class ResultSearchRequest(BaseModel):
+    keyword: str
+    page: int = 1
+    page_size: int = 10
+    creation_date_start: datetime | None
+    creation_date_end: datetime | None
+    phish_prob_min: float | None
+    phish_prob_max: float | None
+    country: str | None
+    sort_by: str | None
+    sort_direction: str | None
+
+
+class ResultSearchResponse(BaseModel):
+    total_count: int
+    results: list[Result] = []
+
+
 class UrlSearchRequest(BaseModel):
     keyword: str
     page: int = 1
@@ -207,4 +225,4 @@ class UrlSearchRequest(BaseModel):
 
 class UrlSearchResponse(BaseModel):
     total_count: int
-    results: list[Result] = []
+    urls: list[Url] = []

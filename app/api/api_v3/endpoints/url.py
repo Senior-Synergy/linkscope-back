@@ -52,7 +52,7 @@ def get_url_data_with_latest_result_only(url_id: int, db: Session = Depends(get_
     }
 
 
-@router.get("/all", response_model=list[schemas.Url], status_code=200)
+@router.get("/url-list/all", response_model=list[schemas.Url], status_code=200)
 def get_all_urls(db: Session = Depends(get_db)):
     url_list_data = url_crud.retrieve_all_urls(db)
 
@@ -67,3 +67,21 @@ def get_all_urls(db: Session = Depends(get_db)):
         })
 
     return urls
+
+@ router.post("/url-list/search", response_model=schemas.UrlSearchResponse, status_code=200)
+def search_results_by_keyword(request: schemas.UrlSearchRequest, db: Session = Depends(get_db)):
+    search_results = url_crud.retrieve_filtered_paginated_urls(
+        db,
+        request.keyword,
+        request.page,
+        request.page_size,
+        request.creation_date_start,
+        request.creation_date_end,
+        request.phish_prob_min,
+        request.phish_prob_max,
+        request.country,
+        request.sort_by,
+        request.sort_direction,
+    )
+
+    return search_results
