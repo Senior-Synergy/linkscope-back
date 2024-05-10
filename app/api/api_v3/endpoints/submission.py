@@ -63,7 +63,7 @@ def create_submission_result_in_bulk_route(request: schemas.SubmissionRequest, d
                                       "city": extra_url_info.get('city'),
                                       "state": extra_url_info.get('state'),
                                       "country": extra_url_info.get('country'),
-                                      "google_safe_browsing": extra_url_info.get('google_safe_browsing')})
+                                      "google_is_malicious": extra_url_info.get('google_is_malicious')})
         else:
             url_data = models.Url(final_url=final_url,
                                   hostname=extra_url_info.get('hostname'),
@@ -149,8 +149,9 @@ def create_submission_result_in_bulk_route(request: schemas.SubmissionRequest, d
 
         result_data = models.Result(submitted_url=url,
                                     phish_prob=result.phish_prob,
-                                    verdict=result.verdict,
-                                    trust_score=result.trust_score,
+                                    phish_prob_mod =result.phish_prob_mod,
+                                    #verdict=result.verdict,
+                                    #trust_score=result.trust_score,
                                     submission=submission_data,
                                     url=url_data,
                                     feature=feature_data

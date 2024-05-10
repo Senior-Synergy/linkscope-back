@@ -39,7 +39,7 @@ class Url(Base):
     city = Column(String(100))
     state = Column(String(100))
     country = Column(String(100))
-    google_safe_browsing = Column(Integer)
+    google_is_malicious = Column(Integer)
     updated_date = Column(DateTime(timezone=True),
                           server_default=func.now(), onupdate=func.now())
 
@@ -104,8 +104,7 @@ class Result(Base):
     feature_id = Column(Integer, ForeignKey('feature.feature_id'))
     submitted_url = Column(String(2000))
     phish_prob = Column(Float)
-    verdict = Column(String(100))
-    trust_score = Column(Float)
+    phish_prob_mod = Column(Float)
     datetime_created = Column(DateTime(timezone=True),
                               server_default=func.now())
 

@@ -144,7 +144,7 @@ class URLFeatures:
             'city':  self.get_city(),
             'state': self.get_state(),
             'country': self.get_country(),
-            'google_safe_browsing': self.google_safe_browsing()
+            'google_is_malicious': self.get_google_is_malicious()
         }
 
     # 0.UsingIp
@@ -457,7 +457,7 @@ class URLFeatures:
 
         return registration_length
 
-    def google_safe_browsing(self):
+    def get_google_is_malicious(self):
         s = SafeBrowsing(google_api_key)
         r = s.lookup_urls([self.final_url])
 
