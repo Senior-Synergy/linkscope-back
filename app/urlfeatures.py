@@ -158,33 +158,33 @@ class URLFeatures:
         if not parsed_url.scheme:
             final_url = "http://" + urlt
 
-        # for user_agent in user_agents:
-        #     try:
-        #         response = requests.get(final_url, allow_redirects=True, headers={
-        #                                 'User-Agent': user_agent}, timeout=2)  # allow_redirects=True
+        for user_agent in user_agents:
+            try:
+                response = requests.get(final_url, allow_redirects=True, headers={
+                                        'User-Agent': user_agent}, timeout=2)  # allow_redirects=True
 
-        #         final_url = response.url
-        #         soup = BeautifulSoup(response.text, 'html.parser')
-        #         urlhistory = response.history
+                final_url = response.url
+                soup = BeautifulSoup(response.text, 'html.parser')
+                urlhistory = response.history
 
-        #         return final_url, soup, urlhistory
-        #     except Exception:
-        #         continue
+                return final_url, soup, urlhistory
+            except Exception:
+                continue
 
-        # # If all user agents fail, return None for all variables
-        # return final_url, soup, urlhistory
+        # If all user agents fail, return None for all variables
+        return final_url, soup, urlhistory
 
-        try:
-            response = requests.get(final_url, allow_redirects=True, headers={
-                                    'User-Agent': headers}, timeout=2)  # ,allow_redirects=True
-            final_url = response.url
-            soup = BeautifulSoup(response.text, 'html.parser')
-            urlhistory = response.history
-            return final_url, soup, urlhistory
-        except requests.RequestException:
-            return final_url, soup, urlhistory
-        except Exception:
-            return final_url, soup, urlhistory
+        # try:
+        #     response = requests.get(final_url, allow_redirects=True, headers={
+        #                             'User-Agent': headers}, timeout=2)  # ,allow_redirects=True
+        #     final_url = response.url
+        #     soup = BeautifulSoup(response.text, 'html.parser')
+        #     urlhistory = response.history
+        #     return final_url, soup, urlhistory
+        # except requests.RequestException:
+        #     return final_url, soup, urlhistory
+        # except Exception:
+        #     return final_url, soup, urlhistory
 
     # ------------------------------------------------------ Extra Information------------------------------------------------------------
 
