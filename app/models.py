@@ -105,6 +105,7 @@ class Result(Base):
     submitted_url = Column(String(2000))
     phish_prob = Column(Float)
     phish_prob_mod = Column(Float)
+    has_soup = Column(Integer)
     datetime_created = Column(DateTime(timezone=True),
                               server_default=func.now())
 

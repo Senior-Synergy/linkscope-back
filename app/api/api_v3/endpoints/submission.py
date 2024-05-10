@@ -83,7 +83,7 @@ def create_submission_result_in_bulk_route(request: schemas.SubmissionRequest, d
                                   city=extra_url_info.get('city'),
                                   state=extra_url_info.get('state'),
                                   country=extra_url_info.get('country'),
-                                  google_safe_browsing=extra_url_info.get('google_safe_browsing'))
+                                  google_is_malicious=extra_url_info.get('google_is_malicious'))
             url_to_insert.append(url_data)
 
         # Create feature_data and result_data ,and append to list for bulk insert
@@ -150,8 +150,7 @@ def create_submission_result_in_bulk_route(request: schemas.SubmissionRequest, d
         result_data = models.Result(submitted_url=url,
                                     phish_prob=result.phish_prob,
                                     phish_prob_mod =result.phish_prob_mod,
-                                    #verdict=result.verdict,
-                                    #trust_score=result.trust_score,
+                                    has_soup =result.has_soup,                                    
                                     submission=submission_data,
                                     url=url_data,
                                     feature=feature_data

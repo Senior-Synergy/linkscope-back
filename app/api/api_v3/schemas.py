@@ -55,6 +55,7 @@ class ResultBase(BaseModel):
     submitted_url: str
     phish_prob: float
     phish_prob_mod : float
+    has_soup : bool | None
     #verdict: str | None
     datetime_created: datetime 
 
@@ -72,7 +73,22 @@ class ResultBase(BaseModel):
         score = (safe_prob) * 5
         return round(score, 2)
     
-    
+    @computed_field
+    @property
+    def verdict(self) -> str:
+        if self.has_soup:
+            if self.phish_prob_mod < 0.2:
+                return "VERY_LOW"
+            elif self.phish_prob_mod < 0.4:
+                return "LOW"
+            elif self.phish_prob_mod < 0.6:
+                return "MEDIUM"
+            elif self.phish_prob_mod < 0.8:
+                return "HIGH"
+            else:
+                return "VERY_HIGH"
+        else:
+            return "UNKNOWN"  
 
 
 class FeatureBase(BaseModel):
