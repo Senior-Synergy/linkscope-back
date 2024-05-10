@@ -70,9 +70,6 @@ class ResultBase(BaseModel):
     def trust_score(self) -> float:
         safe_prob = 1 -(self.phish_prob_mod/100) 
         score = (safe_prob) * 5
-        print(self.phish_prob_mod)
-        print()
-        print(safe_prob)
         return round(score, 2)
     
     

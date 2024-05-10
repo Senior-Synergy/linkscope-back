@@ -48,7 +48,9 @@ class URLResult:
                 (int(self.google_malicious_flag == True) * (1 - model_weight))
         
         return phish_prob_mod
-
+    
+    # Calculate from phish_prob_mod and whether soup is found
+    ''' 
     def get_trust_score(self) -> float:
         safe_prob = 1 - self.phish_prob_mod
         score = (safe_prob) * 5
@@ -68,3 +70,4 @@ class URLResult:
                 return "VERY_HIGH"
         else:
             return "UNKNOWN"
+    '''
