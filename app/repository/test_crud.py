@@ -6,12 +6,8 @@ from datetime import datetime
 
 from typing import Optional
 
-import logging
-
 from app.models import Url, Feature, Result, Submission
 from fastapi import HTTPException, status
-
-logger = logging.getLogger(__name__)
 
 
 def retrieve_url_extended(url_id: int, session: Session, latest: bool, threshold: int = 5):
@@ -19,8 +15,6 @@ def retrieve_url_extended(url_id: int, session: Session, latest: bool, threshold
         url = session.query(Url).filter(Url.url_id == url_id).first()
 
         if not url:
-            logger.error(f"URL data for ID '{url_id}' not found")
-
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"URL with ID '{url_id}' not found"
@@ -30,7 +24,7 @@ def retrieve_url_extended(url_id: int, session: Session, latest: bool, threshold
 
         # Calculate Levenshtein distance for each URL
         similarity_scores = [(other_url, distance(
-            url.final_url, other_url.final_url)) for other_url in all_urls]
+            str(url.final_url), str(other_url.final_url))) for other_url in all_urls]
 
         # Sort by similarity scores
         sorted_similarity_scores = sorted(
@@ -38,7 +32,7 @@ def retrieve_url_extended(url_id: int, session: Session, latest: bool, threshold
 
         # Filter out URLs that are below the threshold
         similar_urls_list = [other_url for other_url,
-                             score in sorted_similarity_scores if score <= threshold and other_url.url_id != url_id]
+                             score in sorted_similarity_scores if score <= threshold and other_url.url_id is not url_id]
 
         # Limit the number of similar URLs to 5
         similar_urls_list = similar_urls_list[:5]
@@ -61,7 +55,6 @@ def retrieve_url_extended(url_id: int, session: Session, latest: bool, threshold
                 "result": result.__dict__ if result else None,
             }
     except Exception as e:
-        logger.error(f"Error occurred while retrieving URL info: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve URL info")
 

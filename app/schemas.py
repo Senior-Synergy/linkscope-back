@@ -56,7 +56,6 @@ class ResultBase(BaseModel):
     phish_prob: float
     phish_prob_mod : float
     has_soup : bool | None
-    #verdict: str | None
     datetime_created: datetime 
 
     @validator('phish_prob','phish_prob_mod', pre=True)

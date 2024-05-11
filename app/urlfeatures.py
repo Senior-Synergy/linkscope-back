@@ -10,6 +10,7 @@ import time
 import re
 import requests
 import socket
+import json
 
 
 dotenv_path = '.env'
@@ -115,11 +116,11 @@ class URLFeatures:
             'shortten_url': self.shortten_url,
             'ip_in_url': self.ip_in_url,
             'empty_links_count': self.empty_links_count,
-            'external_links': self.external_links,
-            'external_img_requrl': self.external_img_requrl,
-            'external_audio_requrl': self.external_audio_requrl,
-            'external_embed_requrl': self.external_embed_requrl,
-            'external_iframe_requrl': self.external_iframe_requrl,
+            'external_links': json.dumps(self.external_links),
+            'external_img_requrl': json.dumps(self.external_img_requrl),
+            'external_audio_requrl': json.dumps(self.external_audio_requrl),
+            'external_embed_requrl': json.dumps(self.external_embed_requrl),
+            'external_iframe_requrl': json.dumps(self.external_iframe_requrl),
             'len_external_links': len(self.external_links) if self.external_links is not None else None,
             'len_external_img_requrl': len(self.external_img_requrl) if self.external_img_requrl is not None else None,
             'len_external_audio_requrl': len(self.external_audio_requrl) if self.external_audio_requrl is not None else None,
@@ -134,7 +135,7 @@ class URLFeatures:
             'domain': self.domain,
             'registrar': self.get_domain_registrar(),
             'ip_address': self.ip,
-            'subdomains': self.subdomains,
+            'subdomains': json.dumps(self.subdomains),
             'scheme': self.scheme,
             # extra domain infomation
             'creation_date': self.creation_date,
@@ -202,7 +203,8 @@ class URLFeatures:
         if subd:
             subd_parts = subd.split('.')
             return subd_parts
-        return None
+        else:
+            return None
 
     def get_scheme(self):
         htp = urlparse(self.final_url).scheme

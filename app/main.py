@@ -3,7 +3,7 @@ from app import models
 from app.database import engine
 from mangum import Mangum
 
-from app.api.api_v3.api import router as router_v3
+from app.api import api
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -16,7 +16,7 @@ def read_root():
 
 
 # API Endpoints
-app.include_router(router_v3, prefix="/api/v3")
+app.include_router(api.router, prefix="/api/v3")
 
 
 handler = Mangum(app)

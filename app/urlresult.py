@@ -36,15 +36,20 @@ class URLResult:
         self.google_malicious_flag = feature.get_google_is_malicious()
         self.phish_prob_mod = self.get_phish_prob_mod()
         self.has_soup = self.get_has_soup()
-        #self.verdict = self.get_verdict()
-        #self.trust_score = self.get_trust_score()
-    
+
     def get_has_soup(self):
         if self.feature.soup is None:
             return False
         else:
             return True
-        
+
+    def get_results(self):
+        return {
+            "phish_prob": self.phish_prob,
+            "phish_prob_mod": self.phish_prob_mod,
+            "has_soup": self.has_soup,
+        }
+
     def get_phish_prob_mod(self):
         phish_prob_mod = self.phish_prob
 
@@ -53,5 +58,5 @@ class URLResult:
 
             phish_prob_mod = (phish_prob_mod * model_weight) + \
                 (int(self.google_malicious_flag == True) * (1 - model_weight))
-        
-        return phish_prob_mod    
+
+        return phish_prob_mod
