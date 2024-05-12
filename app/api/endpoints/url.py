@@ -1,4 +1,3 @@
-from msilib import schema
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 
