@@ -29,6 +29,10 @@ class UrlBase(BaseModel):
     country: str | None
     google_is_malicious: bool | None
 
+    # ---------------------------------
+
+    updated_date: datetime
+
     @validator('subdomains', pre=True)
     @classmethod
     def json_dumps(cls, value: str):
@@ -49,29 +53,29 @@ class UrlBase(BaseModel):
 
 class ResultBase(BaseModel):
     result_id: int
-    submission_id: int | None
-    url_id: int | None
-    feature_id: int | None
+    submission_id: int
+    url_id: int
+    feature_id: int
     submitted_url: str
     phish_prob: float
-    phish_prob_mod : float
-    has_soup : bool | None
-    datetime_created: datetime 
+    phish_prob_mod: float
+    has_soup: bool
+    datetime_created: datetime
 
-    @validator('phish_prob','phish_prob_mod', pre=True)
-    @classmethod
-    def parse_extra_features(cls, value):
-        if isinstance(value, float):
-            return round(value*100, 2)
-        return value
-    
+    # @validator('phish_prob', 'phish_prob_mod', pre=True)
+    # @classmethod
+    # def parse_extra_features(cls, value):
+    #     if isinstance(value, float):
+    #         return round(value*100, 2)
+    #     return value
+
     @computed_field
     @property
     def trust_score(self) -> float:
-        safe_prob = 1 -(self.phish_prob_mod/100) 
+        safe_prob = 1 - (self.phish_prob_mod/100)
         score = (safe_prob) * 5
         return round(score, 2)
-    
+
     @computed_field
     @property
     def verdict(self) -> str:
@@ -87,7 +91,7 @@ class ResultBase(BaseModel):
             else:
                 return "VERY_HIGH"
         else:
-            return "UNKNOWN"  
+            return "UNKNOWN"
 
 
 class FeatureBase(BaseModel):
@@ -233,7 +237,10 @@ class ResultSearchResponse(BaseModel):
     total_count: int
     results: list[Result] = []
 
-
+class UrlSimilarUrlRequest(BaseModel):
+    threshold: int
+    amount: int
+    
 class UrlSearchRequest(BaseModel):
     keyword: str
     page: int = 1
@@ -250,3 +257,14 @@ class UrlSearchRequest(BaseModel):
 class UrlSearchResponse(BaseModel):
     total_count: int
     urls: list[Url] = []
+    
+
+class UrlResultPaginatedRequest(BaseModel):
+    page: int = 1
+    page_size: int = 10
+    sort_by: str | None
+    sort_direction: str | None
+    
+class UrlResultPaginatedResponse(BaseModel):
+    total_count: int
+    results: list[ResultBase] = []

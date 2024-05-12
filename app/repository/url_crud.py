@@ -77,7 +77,7 @@ def retrieve_all_urls(session: Session):
             status_code=500, detail=f"Error retrieving all URLs: {str(e)}")
 
 
-def retrieve_similar_urls(db: Session, url_id, final_url, threshold: int = 5):
+def retrieve_similar_urls(db: Session, url_id, final_url, threshold: int = 5, amount: int = 5):
     try:
         all_urls = db.query(Url).all()
 
@@ -94,7 +94,7 @@ def retrieve_similar_urls(db: Session, url_id, final_url, threshold: int = 5):
             score <= threshold) and bool(other_url.url_id != url_id)]
 
         # Limit the number of similar URLs to 5
-        similar_urls_list = similar_urls_list[:5]
+        similar_urls_list = similar_urls_list[:amount]
 
         return similar_urls_list
     except Exception as e:
