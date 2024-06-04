@@ -98,23 +98,31 @@ class FeatureBase(BaseModel):
     feature_id: int
     domainlength: int | None   # 1
     www: bool | None   # 2
-    https: bool | None   # 3
-    short_url: bool | None   # 4
-    ip: bool | None   # 5
-    dash_count: int | None   # 6
-    equal_count: int | None   # 7
-    dot_count: int | None   # 8
-    underscore_count: int | None   # 9
-    slash_count: int | None   # 10
-    digit_count: int | None   # 11
-    pc_emptylink: float | None  # 12
-    pc_extlink: float | None   # 13
-    pc_requrl: float | None   # 14
-    zerolink: bool | None   # 15
-    ext_favicon: bool | None   # 16
-    sfh: bool | None   # 17
-    redirection: bool | None   # 18
-    domainend: bool | None   # 19
+    subdomain: bool | None #3
+    https: bool | None   #4
+    short_url: bool | None   #5
+    at_count : int | None  #6
+    dash_count: int | None   # 7
+    equal_count: int | None   # 8
+    dot_count: int | None   # 9
+    underscore_count: int | None   #10
+    slash_count: int | None   # 11
+    digit_count: int | None #12  
+    log_count: int | None  #13
+    pay_count: int | None  #14
+    web_count: int | None  #15
+    account_count: int | None # 16
+    pc_emptylink: float | None # 17
+    pc_extlink: float | None  # 18
+    pc_requrl: float | None   # 19
+    zerolink: bool | None   # 20
+    ext_favicon: bool | None   # 21
+    submit2Email: bool | None  # 22
+    sfh: bool | None   # 23
+    redirection: bool | None   #24
+    domainage: bool | None   # 25
+    domainend: bool | None   # 26
+
 
     # ---------------------------------
 
@@ -132,9 +140,8 @@ class FeatureBase(BaseModel):
     len_external_embed_requrl: int | None
     len_external_iframe_requrl: int | None
 
-    @validator('www', 'https', 'short_url', 'ip',
-               'zerolink', 'ext_favicon',
-               'sfh', 'redirection', 'domainend', pre=True)
+    @validator('www', 'subdomain','https', 'short_url', 'zerolink', 'ext_favicon',
+               'sfh','submit2Email', 'redirection','domainage', 'domainend', pre=True)
     @classmethod
     def cast_to_bool(cls, value: bool):
         if value == False:

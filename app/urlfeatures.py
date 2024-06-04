@@ -90,25 +90,32 @@ class URLFeatures:
 
     def get_model_features(self):
         return {
-            'domainlength': self.getdomainlength(),
-            'www': self.contains_www(),
-            'https': self.httpSecure(),
-            'short_url': self.short_url(),
-            'ip': self.having_ip_address(),
-            'dash_count': self.count_dash_symbols(),
-            'equal_count': self.count_equal_symbols(),
-            'dot_count': self.count_dot_symbols(),
-            'underscore_count': self.count_underscore_symbols(),
-            'slash_count': self.count_slash_symbols(),
-            'digit_count': self.digit_count(),
-            'pc_emptylink': self.calc_pc_emptylinks(),
-            'pc_extlink': self.calc_pc_extlinks(),
-            'pc_requrl': self.calc_pc_requrl(),
-            'zerolink': self.has_zero_links_in_body(),
-            'ext_favicon': self.has_external_favicon(),
-            'sfh':  self.sfh(),
-            'redirection': self.redirection(),
-            'domainend': self.domainEnd() if self.whois else -1
+            'domainlength': self.getdomainlength(), #1
+            'www': self.contains_www(), #2
+            'subdomain' : self.has_subdomain(), #3
+            'https': self.httpSecure(), #4           
+            'short_url': self.short_url(), #5          
+            'at_count' : self.count_at_symbols(), #6
+            'dash_count': self.count_dash_symbols(), #7
+            'equal_count': self.count_equal_symbols(), #8
+            'dot_count': self.count_dot_symbols(), #9
+            'underscore_count': self.count_underscore_symbols(), #10
+            'slash_count': self.count_slash_symbols(), #11
+            'digit_count': self.digit_count(), #12
+            'log_count' : self.contains_log(), #13
+            'pay_count' : self.contains_pay(), #14
+            'web_count' : self.contains_web(), #15     
+            'account_count' : self.contains_account(), #16
+            'pc_emptylink': self.calc_pc_emptylinks(), #17
+            'pc_extlink': self.calc_pc_extlinks(), #18
+            'pc_requrl': self.calc_pc_requrl(), #19
+            'zerolink': self.has_zero_links_in_body(), #20
+            'ext_favicon': self.has_external_favicon(), #21
+            'submit2Email' : self.submit2Email(), #22
+            'sfh':  self.sfh(), #23
+            'redirection': self.redirection(), #24
+            'domainage' : self.domainAge() if self.whois else -1, #25
+            'domainend': self.domainEnd() if self.whois else -1 #26
         }
 
     def get_extra_features(self):
@@ -408,7 +415,7 @@ class URLFeatures:
         return self.whois.country
 
     def get_creation_date(self):
-        if self.whois is None or self.whois.creation_date is None:
+        if self.whois is None or self.whois.creation_date is None or self.whois.creation_date == 'N/A':
             return None
 
         creation_date = self.whois.creation_date
@@ -417,12 +424,15 @@ class URLFeatures:
             creation_date = creation_date[0]
 
         if isinstance(creation_date, str):
+          try:
             creation_date = datetime.strptime(creation_date, "%Y-%m-%d")
+          except:
+            return None
 
         return creation_date
 
     def get_expiration_date(self):
-        if self.whois is None or self.whois.expiration_date is None:
+        if self.whois is None or self.whois.expiration_date is None or self.whois.expiration_date == 'N/A':
             return None
 
         expiration_date = self.whois.expiration_date
@@ -431,9 +441,13 @@ class URLFeatures:
             expiration_date = expiration_date[0]
 
         if isinstance(expiration_date, str):
+          try:
             expiration_date = datetime.strptime(expiration_date, "%Y-%m-%d")
+          except:
+            return None
 
         return expiration_date
+
 
     def get_domainage(self):
         if self.whois is None or self.creation_date is None or self.expiration_date is None:
@@ -487,8 +501,19 @@ class URLFeatures:
             else:
                 return 1
         return -1
+    
+    # 3 has subdomain or not
+    # one or no subdomain => 0 (safe),more than 1 subdomain => 1 (phishing)
+    def has_subdomain(self):
+        subd_parts = self.subdomains
+        if subd_parts:
+            if len(subd_parts) > 1:
+                return 1
+            else:
+                return 0
+        return -1
 
-    # 3 checks https
+    # 4 checks https
     def httpSecure(self):
         htp = self.scheme
         match = str(htp)
@@ -499,7 +524,7 @@ class URLFeatures:
                 return 1
         return -1
 
-    # 4 short url
+    # 5 short url
     def short_url(self):
         match = self.shortten_url
         if match:
@@ -507,38 +532,34 @@ class URLFeatures:
         else:
             return 0
 
-    # 5 Use the IP Address
-    def having_ip_address(self):
-        match = self.get_ip_in_url()
-        if match:
-            return 1
-        else:
-            return 0
-
     # 6
+    def count_at_symbols(self):
+        return self.final_url.count("@")
+
+    # 7
     def count_dash_symbols(self):
         return self.final_url.count("-")
 
-    # 7
+    # 8
     def count_equal_symbols(self):
         return self.final_url.count("=")
 
-    # 8
+    # 9
     def count_dot_symbols(self):
         hostname = self.hostname
         if hostname:
             return hostname.count(".")
         return -1
 
-    # 9
+    # 10
     def count_underscore_symbols(self):
         return self.final_url.count("_")
 
-    # 10
+    # 11
     def count_slash_symbols(self):
         return self.final_url.count("/")
 
-    # 11 count digit : tested
+    # 12 count digit : tested
     def digit_count(self):
         hostname = self.hostname
         digits = 0
@@ -549,8 +570,31 @@ class URLFeatures:
             return digits
         else:
             return -1
+        
+    # 13 if contain keyword => 1 (phish), else => 0 (safe)
+    def contains_log(self):
+        if 'log' in self.final_url.lower():
+            return 1
+        return 0
 
-    # 12 Percentage of links that do not lead to another page
+    # 14
+    def contains_pay(self):
+        if 'pay' in self.final_url.lower():
+            return 1
+        return 0
+
+    # 15
+    def contains_web(self):
+        if 'web' in self.final_url.lower():
+            return 1
+        return 0
+    # 16
+    def contains_account(self):
+        if 'account' in self.final_url.lower():
+            return 1
+        return 0
+
+    # 17 Percentage of links that do not lead to another page
     def calc_pc_emptylinks(self):
         if self.soup is None:
             return -1
@@ -565,8 +609,7 @@ class URLFeatures:
             percentage_empty_links = 0
         return percentage_empty_links
 
-    # 13 Percentage of links that lead to an external page.
-
+    # 18 Percentage of links that lead to an external page.
     def calc_pc_extlinks(self):
         if self.soup is None:
             return -1
@@ -583,7 +626,7 @@ class URLFeatures:
 
         return percentage_external_links
 
-    # 14 Percentage of external resources URL /Request URL ,examines whether the external objects contained within a webpage
+    # 19 Percentage of external resources URL /Request URL ,examines whether the external objects contained within a webpage
     def calc_pc_requrl(self):
         if self.soup is None:
             return -1
@@ -600,7 +643,7 @@ class URLFeatures:
             percentage = 0
         return percentage
 
-    # 15 Zero links in body portion of HTML
+    # 20 Zero links in body portion of HTML
     def has_zero_links_in_body(self):
         if self.soup is None or self.soup.body is None:
             return -1
@@ -610,7 +653,7 @@ class URLFeatures:
             return 1
         return 0
 
-    # 16 external favicon
+    # 21 external favicon
     def has_external_favicon(self):
         if self.soup is None:
             return -1
@@ -621,9 +664,18 @@ class URLFeatures:
             return 0
         else:
             return 1
+        
+    # 22 submit2Email
+    def submit2Email(self):
+        if self.soup is None:
+            return -1
 
-    # 17 SFHs that contain an empty string or “about:blank” are considered doubtful
+        if re.search(r"\b(mail\(\)|mailto:?)\b", self.soup.text, re.IGNORECASE):
+            return 1
+        else:
+            return 0
 
+    # 23 SFHs that contain an empty string or “about:blank” are considered doubtful
     def sfh(self):
         if self.soup is None:
             return -1
@@ -638,7 +690,7 @@ class URLFeatures:
                 return 0
         return 0
 
-    # 18 redirection
+    # 24 redirection
     def redirection(self):
         if self.url_history is None:
             return -1
@@ -647,11 +699,19 @@ class URLFeatures:
             return 1
         else:
             return 0
+    # 25 Domain Age : Survival time of domain: The difference between termination time and creation time (Domain_Age)
+    def domainAge(self):
+        domain_age = self.domain_age
+        if domain_age is None:
+            return 1
+        elif domain_age == -1:
+            return -1
+        else:
+            return 1 if domain_age/30 < 6 else 0
 
-    # 19 Domain Registration length
+
+    # 26 Domain Registration length
     def domainEnd(self):
-        today = time.strftime('%Y-%m-%d')
-        today = datetime.strptime(today, '%Y-%m-%d')
         registration_length = self.domain_end
         if registration_length is None:
             return 1

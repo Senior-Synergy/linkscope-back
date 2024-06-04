@@ -24,7 +24,7 @@ class URLResult:
 
         # Format feature items to be used with the model
         feature_array = np.array(
-            list(feature.get_model_features().values())[:19]).reshape(1, 19)
+            list(feature.get_model_features().values())).reshape(1, 26)
         feature_df = pd.DataFrame(
             feature_array, columns=feature_names)
 

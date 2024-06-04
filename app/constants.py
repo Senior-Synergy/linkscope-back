@@ -1,5 +1,5 @@
-feature_names = ['domainlength', 'www', 'https', 'short_url', 'ip','-', '=', '.', '/', '_', 'digit', 'pcemptylinks', 'pcextlinks', 'pcrequrl','zerolink',
-                     'extfavicon', 'sfh', 'redirection', 'domainend']
+feature_names =['domainlength', 'www' ,'subdomain' ,'https', 'short_url', '@','-', '=', '.', '_', '/' ,
+                          'digit' ,'log' ,'pay' ,'web', 'account' ,'pcemptylinks', 'pcextlinks', 'pcrequrl', 'zerolink', 'extfavicon' ,'submit2email' ,'sfh' ,'redirection', 'domainage', 'domainend']
 
 
 feature_names2 = [ 'domainlength', 
