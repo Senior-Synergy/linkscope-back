@@ -91,32 +91,32 @@ class URLFeatures:
 
     def get_model_features(self):
         return {
-            'domainlength': self.getdomainlength(), #1
-            'www': self.contains_www(), #2
-            'subdomain' : self.has_subdomain(), #3
-            'https': self.httpSecure(), #4           
-            'short_url': self.short_url(), #5          
-            'at_count' : self.count_at_symbols(), #6
-            'dash_count': self.count_dash_symbols(), #7
-            'equal_count': self.count_equal_symbols(), #8
-            'dot_count': self.count_dot_symbols(), #9
-            'underscore_count': self.count_underscore_symbols(), #10
-            'slash_count': self.count_slash_symbols(), #11
-            'digit_count': self.digit_count(), #12
-            'log_count' : self.contains_log(), #13
-            'pay_count' : self.contains_pay(), #14
-            'web_count' : self.contains_web(), #15     
-            'account_count' : self.contains_account(), #16
-            'pc_emptylink': self.calc_pc_emptylinks(), #17
-            'pc_extlink': self.calc_pc_extlinks(), #18
-            'pc_requrl': self.calc_pc_requrl(), #19
-            'zerolink': self.has_zero_links_in_body(), #20
-            'ext_favicon': self.has_external_favicon(), #21
-            'submit2Email' : self.submit2Email(), #22
-            'sfh':  self.sfh(), #23
-            'redirection': self.redirection(), #24
-            'domainage' : self.domainAge() if self.whois else -1, #25
-            'domainend': self.domainEnd() if self.whois else -1 #26
+            'domainlength': self.getdomainlength(),  # 1
+            'www': self.contains_www(),  # 2
+            'subdomain': self.has_subdomain(),  # 3
+            'https': self.httpSecure(),  # 4
+            'short_url': self.short_url(),  # 5
+            'at_count': self.count_at_symbols(),  # 6
+            'dash_count': self.count_dash_symbols(),  # 7
+            'equal_count': self.count_equal_symbols(),  # 8
+            'dot_count': self.count_dot_symbols(),  # 9
+            'underscore_count': self.count_underscore_symbols(),  # 10
+            'slash_count': self.count_slash_symbols(),  # 11
+            'digit_count': self.digit_count(),  # 12
+            'log_count': self.contains_log(),  # 13
+            'pay_count': self.contains_pay(),  # 14
+            'web_count': self.contains_web(),  # 15
+            'account_count': self.contains_account(),  # 16
+            'pc_emptylink': self.calc_pc_emptylinks(),  # 17
+            'pc_extlink': self.calc_pc_extlinks(),  # 18
+            'pc_requrl': self.calc_pc_requrl(),  # 19
+            'zerolink': self.has_zero_links_in_body(),  # 20
+            'ext_favicon': self.has_external_favicon(),  # 21
+            'submit2Email': self.submit2Email(),  # 22
+            'sfh':  self.sfh(),  # 23
+            'redirection': self.redirection(),  # 24
+            'domainage': self.domainAge() if self.whois else -1,  # 25
+            'domainend': self.domainEnd() if self.whois else -1  # 26
         }
 
     def get_extra_features(self):
@@ -425,10 +425,10 @@ class URLFeatures:
             creation_date = creation_date[0]
 
         if isinstance(creation_date, str):
-          try:
-            creation_date = datetime.strptime(creation_date, "%Y-%m-%d")
-          except:
-            return None
+            try:
+                creation_date = datetime.strptime(creation_date, "%Y-%m-%d")
+            except:
+                return None
 
         return creation_date
 
@@ -442,13 +442,13 @@ class URLFeatures:
             expiration_date = expiration_date[0]
 
         if isinstance(expiration_date, str):
-          try:
-            expiration_date = datetime.strptime(expiration_date, "%Y-%m-%d")
-          except:
-            return None
+            try:
+                expiration_date = datetime.strptime(
+                    expiration_date, "%Y-%m-%d")
+            except:
+                return None
 
         return expiration_date
-
 
     def get_domainage(self):
         if self.whois is None or self.creation_date is None or self.expiration_date is None:
@@ -476,11 +476,14 @@ class URLFeatures:
 
     def get_google_is_malicious(self):
         s = SafeBrowsing(google_api_key)
-        r = s.lookup_urls([self.final_url])
 
-        if r:
-            return r[self.final_url].get('malicious', None)
-        else:
+        try:
+            r = s.lookup_urls([self.final_url])
+            if r:
+                return r[self.final_url].get('malicious', None)
+            else:
+                return None
+        except:
             return None
 
     # -----------------------------------------------------------------Model Features---------------------------------------------------------------
@@ -502,7 +505,7 @@ class URLFeatures:
             else:
                 return 1
         return -1
-    
+
     # 3 has subdomain or not
     # one or no subdomain => 0 (safe),more than 1 subdomain => 1 (phishing)
     def has_subdomain(self):
@@ -571,7 +574,7 @@ class URLFeatures:
             return digits
         else:
             return -1
-        
+
     # 13 if contain keyword => 1 (phish), else => 0 (safe)
     def contains_log(self):
         if 'log' in self.final_url.lower():
@@ -590,6 +593,7 @@ class URLFeatures:
             return 1
         return 0
     # 16
+
     def contains_account(self):
         if 'account' in self.final_url.lower():
             return 1
@@ -665,7 +669,7 @@ class URLFeatures:
             return 0
         else:
             return 1
-        
+
     # 22 submit2Email
     def submit2Email(self):
         if self.soup is None:
@@ -701,6 +705,7 @@ class URLFeatures:
         else:
             return 0
     # 25 Domain Age : Survival time of domain: The difference between termination time and creation time (Domain_Age)
+
     def domainAge(self):
         domain_age = self.domain_age
         if domain_age is None:
@@ -710,8 +715,8 @@ class URLFeatures:
         else:
             return 1 if domain_age/30 < 6 else 0
 
-
     # 26 Domain Registration length
+
     def domainEnd(self):
         registration_length = self.domain_end
         if registration_length is None:

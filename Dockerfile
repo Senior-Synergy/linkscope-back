@@ -1,10 +1,19 @@
+# Base image
 FROM public.ecr.aws/lambda/python:3.11
+
+# Install system-level dependencies
+RUN yum -y update && \
+    yum -y groupinstall "Development Tools" && \
+    yum clean all
 
 COPY requirements.txt ${LAMBDA_TASK_ROOT}
 COPY data/model.joblib ${LAMBDA_TASK_ROOT}/data/
 
+# Install Python dependencies
+RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
+# Copy the application code
 COPY app/ ${LAMBDA_TASK_ROOT}/app/
 
 CMD [ "app.main.handler" ]
