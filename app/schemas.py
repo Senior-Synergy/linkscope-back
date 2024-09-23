@@ -97,10 +97,10 @@ class ResultBase(BaseModel):
 class FeatureBase(BaseModel):
     feature_id: int
     domainlength: int | None   # 1
-    www: bool | None   # 2
-    subdomain: bool | None #3
-    https: bool | None   #4
-    short_url: bool | None   #5
+    www: int | None   # 2
+    subdomain: int | None #3
+    https: int | None   #4
+    short_url: int | None   #5
     at_count : int | None  #6
     dash_count: int | None   # 7
     equal_count: int | None   # 8
@@ -115,13 +115,13 @@ class FeatureBase(BaseModel):
     pc_emptylink: float | None # 17
     pc_extlink: float | None  # 18
     pc_requrl: float | None   # 19
-    zerolink: bool | None   # 20
-    ext_favicon: bool | None   # 21
-    submit2Email: bool | None  # 22
-    sfh: bool | None   # 23
-    redirection: bool | None   #24
-    domainage: bool | None   # 25
-    domainend: bool | None   # 26
+    zerolink: int | None   # 20
+    ext_favicon: int | None   # 21
+    submit2Email: int | None  # 22
+    sfh: int | None   # 23
+    redirection: int | None   #24
+    domainage: int | None   # 25
+    domainend: int | None   # 26
 
 
     # ---------------------------------
@@ -140,16 +140,16 @@ class FeatureBase(BaseModel):
     len_external_embed_requrl: int | None
     len_external_iframe_requrl: int | None
 
-    @validator('www', 'subdomain','https', 'short_url', 'zerolink', 'ext_favicon',
-               'sfh','submit2Email', 'redirection','domainage', 'domainend', pre=True)
-    @classmethod
-    def cast_to_bool(cls, value: bool):
-        if value == False:
-            return False
-        elif value == True:
-            return True
-        else:
-            return None
+    # @validator('www', 'subdomain','https', 'short_url', 'zerolink', 'ext_favicon',
+    #            'sfh','submit2Email', 'redirection','domainage', 'domainend', pre=True)
+    # @classmethod
+    # def cast_to_bool(cls, value: bool):
+    #     if value == False:
+    #         return False
+    #     elif value == True:
+    #         return True
+    #     else:
+    #         return None
 
     @validator('pc_emptylink', 'pc_extlink', 'pc_requrl', pre=True)
     @classmethod
